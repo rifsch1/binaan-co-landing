@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BINAAN — Property Conversion Websites</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url('fonts/SpaceGrotesk-VariableFont_wght.ttf') format('truetype');
+      font-weight: 100 900;
+      font-style: normal;
+      font-display: swap;
+    }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: #1A1A1A;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #111; }
+    ::-webkit-scrollbar-thumb { background: #2C2C2C; }
+
+    /* Scroll-reveal animation */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.65s cubic-bezier(0.4,0,0.2,1), transform 0.65s cubic-bezier(0.4,0,0.2,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
+    }
+
+    /* Scroll progress bar */
+    #scroll-progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, #1F3D2B 0%, #8C7A5B 100%);
+      z-index: 9999;
+      width: 0%;
+      transition: width 80ms linear;
+      box-shadow: 0 0 8px rgba(31,61,43,0.6);
+    }
+
+    /* Global keyframes */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: none; }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    @keyframes lineGrow {
+      from { width: 0; }
+      to   { width: 100%; }
+    }
+    @keyframes breathe {
+      0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(31,61,43,0.8); }
+      50%       { opacity: 0.45; box-shadow: 0 0 16px rgba(31,61,43,0.3); }
+    }
+    @keyframes shimmerText {
+      0%   { background-position: -200% center; }
+      100% { background-position:  200% center; }
+    }
+    @keyframes rotateSlow {
+      from { transform: rotate(0deg); }
+      to   { transform: rotate(360deg); }
+    }
+
+    /* Selection */
+    ::selection { background: rgba(31,61,43,0.35); color: #F4F4F2; }
+  </style>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <!-- Component scripts in dependency order -->
+  <script type="text/babel" src="Header.jsx"></script>
+  <script type="text/babel" src="Hero.jsx"></script>
+  <script type="text/babel" src="DemoSection.jsx"></script>
+  <script type="text/babel" src="ProblemSection.jsx"></script>
+  <script type="text/babel" src="ApproachSection.jsx"></script>
+  <script type="text/babel" src="SystemsSection.jsx"></script>
+  <script type="text/babel" src="FlowSection.jsx"></script>
+  <script type="text/babel" src="WhoForSection.jsx"></script>
+  <script type="text/babel" src="OfferSection.jsx"></script>
+  <script type="text/babel" src="ProcessSection.jsx"></script>
+  <script type="text/babel" src="BeforeAfterSection.jsx"></script>
+  <script type="text/babel" src="FAQSection.jsx"></script>
+  <script type="text/babel" src="FinalCTASection.jsx"></script>
+  <script type="text/babel" src="Footer.jsx"></script>
+</head>
+<body>
+  <!-- Scroll progress bar -->
+  <div id="scroll-progress"></div>
+  <div id="root"></div>
+
+  <script>
+    // Scroll progress bar (vanilla, runs immediately)
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      const bar = document.getElementById('scroll-progress');
+      if (bar) bar.style.width = pct + '%';
+    });
+  </script>
+
+  <script type="text/babel">
+    // ── Scroll-reveal hook ──
+    const useScrollReveal = () => {
+      React.useEffect(() => {
+        const els = document.querySelectorAll('.reveal');
+        const observer = new IntersectionObserver(
+          (entries) => entries.forEach(e => {
+            if (e.isIntersecting) {
+              e.target.classList.add('visible');
+              observer.unobserve(e.target);
+            }
+          }),
+          { threshold: 0.1 }
+        );
+        els.forEach(el => observer.observe(el));
+        return () => observer.disconnect();
+      }, []);
+    };
+
+    // ── Reveal wrapper ──
+    const Reveal = ({ children, delay = 0 }) => (
+      <div className="reveal" style={{ transitionDelay: `${delay}ms` }}>
+        {children}
+      </div>
+    );
+
+    // ── Animated section divider ──
+    const SectionDivider = () => {
+      const ref = React.useRef(null);
+      const [vis, setVis] = React.useState(false);
+      React.useEffect(() => {
+        const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVis(true); obs.disconnect(); } }, { threshold: 0.5 });
+        if (ref.current) obs.observe(ref.current);
+        return () => obs.disconnect();
+      }, []);
+      return (
+        <div ref={ref} style={{ position: 'relative', height: 1, overflow: 'hidden' }}>
+          <div style={{
+            position: 'absolute', top: 0, left: 0,
+            height: 1, background: 'rgba(168,168,168,0.1)',
+            width: vis ? '100%' : '0%',
+            transition: 'width 1.2s cubic-bezier(0.4,0,0.2,1)',
+          }} />
+        </div>
+      );
+    };
+
+    // ── App ──
+    const App = () => {
+      useScrollReveal();
+
+      const scrollTo = (id) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.scrollY - 68;
+          window.scrollTo({ top, behavior: 'smooth' });
+        }
+      };
+
+      const onNavigate = (target) => {
+        const map = {
+          hero: 'hero', problem: 'problem', demo: 'demo',
+          systems: 'systems', process: 'process', contact: 'contact',
+          flow: 'flow', who: 'who', offer: 'offer', proof: 'proof', faq: 'faq',
+        };
+        setTimeout(() => scrollTo(map[target] || target), 20);
+      };
+
+      return (
+        <div>
+          <Header onNavigate={onNavigate} />
+
+          {/* 01 Hero — no reveal wrapper, has own entrance animations */}
+          <Hero onNavigate={onNavigate} />
+
+          {/* 02 Demo */}
+          <Reveal><DemoSection onNavigate={onNavigate} /></Reveal>
+
+          {/* 03 Problem */}
+          <Reveal><ProblemSection /></Reveal>
+
+          {/* 04 Approach */}
+          <Reveal><ApproachSection /></Reveal>
+
+          {/* 05 Systems */}
+          <Reveal><SystemsSection /></Reveal>
+
+          {/* 06 Flow */}
+          <Reveal><FlowSection /></Reveal>
+
+          {/* 07 Who it's for */}
+          <Reveal><WhoForSection /></Reveal>
+
+          {/* 08 Offer */}
+          <Reveal><OfferSection /></Reveal>
+
+          {/* 09 Process */}
+          <Reveal><ProcessSection /></Reveal>
+
+          {/* 10 Before / After */}
+          <Reveal><BeforeAfterSection /></Reveal>
+
+          {/* 11 FAQ */}
+          <Reveal><FAQSection /></Reveal>
+
+          {/* 12 Final CTA */}
+          <Reveal><FinalCTASection onNavigate={onNavigate} /></Reveal>
+
+          {/* Footer */}
+          <Footer onNavigate={onNavigate} />
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+
+    // Re-trigger reveal observer after React renders
+    setTimeout(() => {
+      const els = document.querySelectorAll('.reveal');
+      const observer = new IntersectionObserver(
+        (entries) => entries.forEach(e => {
+          if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); }
+        }),
+        { threshold: 0.1 }
+      );
+      els.forEach(el => observer.observe(el));
+    }, 500);
+  </script>
+</body>
+</html>
