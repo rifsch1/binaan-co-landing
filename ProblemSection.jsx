@@ -1,6 +1,7 @@
 ﻿const ProblemSection = () => {
   const sectionRef = React.useRef(null);
   const [visible, setVisible] = React.useState(false);
+  const [hoveredDrop, setHoveredDrop] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
 
   React.useEffect(() => {
@@ -62,6 +63,7 @@
         <div style={{
           display:'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: isMobile ? 12 : 16,
         }}>
+          {/* Broken flow */}
           <div style={{
             background:'#E8E8E6', border:'1px solid rgba(168,168,168,0.25)',
             padding: isMobile ? '28px 20px' : '36px',
@@ -70,35 +72,60 @@
             <div style={{ fontFamily:"'Inter', sans-serif", fontSize:9, fontWeight:600,
               letterSpacing:'0.12em', textTransform:'uppercase', color:'#A8A8A8', marginBottom:22 }}>Without a system</div>
             <div style={{ display:'flex', alignItems:'center', flexWrap:'wrap', gap:0 }}>
-              {brokenFlow.map((step, i) => (
-                <React.Fragment key={i}>
+              {brokenFlow.map((step, i) => {
+                const isLast = i === brokenFlow.length - 1;
+                const boxEl = (
                   <div style={{
                     fontFamily:"'Space Grotesk', sans-serif", fontSize:12, fontWeight:600,
-                    color: i===brokenFlow.length-1 ? '#8B1A1A' : '#444',
+                    color: isLast ? '#8B1A1A' : '#444',
                     padding:'9px 14px',
-                    border:`1px solid ${i===brokenFlow.length-1 ? 'rgba(139,26,26,0.35)' : 'rgba(168,168,168,0.3)'}`,
-                    background: i===brokenFlow.length-1 ? 'rgba(139,26,26,0.07)' : 'transparent',
+                    border:`1px solid ${isLast ? 'rgba(139,26,26,0.35)' : 'rgba(168,168,168,0.3)'}`,
+                    background: isLast ? 'rgba(139,26,26,0.07)' : 'transparent',
                     opacity:visible?1:0, transform:visible?'none':'translateX(-8px)',
                     transition:`all 0.5s ease ${0.55+i*0.1}s`,
                   }}>{step}</div>
-                  {i<brokenFlow.length-1 && (
-                    <div style={{ padding:'0 3px' }}>
-                      <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
-                        <line x1="0" y1="6" x2="13" y2="6" stroke={i===brokenFlow.length-2?'#8B1A1A':'#A8A8A8'} strokeWidth="1.2"
-                          strokeDasharray="13" strokeDashoffset={visible?0:13}
-                          style={{ transition:`stroke-dashoffset 0.4s ease ${0.7+i*0.1}s` }} />
-                        <path d="M11 2l4 4-4 4" stroke={i===brokenFlow.length-2?'#8B1A1A':'#A8A8A8'} strokeWidth="1.2" strokeLinecap="square"
-                          opacity={visible?1:0} style={{ transition:`opacity 0.3s ease ${0.8+i*0.1}s` }} />
-                      </svg>
-                    </div>
-                  )}
-                </React.Fragment>
-              ))}
+                );
+                return (
+                  <React.Fragment key={i}>
+                    {isLast ? (
+                      <div style={{ position:'relative' }}
+                        onMouseEnter={() => !isMobile && setHoveredDrop(true)}
+                        onMouseLeave={() => !isMobile && setHoveredDrop(false)}
+                      >
+                        {boxEl}
+                        <div style={{
+                          position:'absolute', bottom:'calc(100% + 6px)', left:'50%',
+                          transform:'translateX(-50%)',
+                          background:'rgba(139,26,26,0.1)', border:'1px solid rgba(139,26,26,0.25)',
+                          color:'#8B1A1A', fontSize:11, fontFamily:"'Inter', sans-serif",
+                          padding:'4px 10px', borderRadius:2, whiteSpace:'nowrap',
+                          opacity: hoveredDrop ? 1 : 0,
+                          transition:'opacity 200ms ease', pointerEvents:'none',
+                        }}>~73% of leads lost here</div>
+                      </div>
+                    ) : boxEl}
+                    {i < brokenFlow.length - 1 && (
+                      <div style={{ padding:'0 3px' }}>
+                        <svg width="20" height="12" viewBox="0 0 20 12" fill="none">
+                          <line x1="0" y1="6" x2="13" y2="6"
+                            stroke={i===brokenFlow.length-2?'#8B1A1A':'#A8A8A8'} strokeWidth="1.2"
+                            strokeDasharray="13" strokeDashoffset={visible?0:13}
+                            style={{ transition:`stroke-dashoffset 0.4s ease ${i*0.2+0.6}s` }} />
+                          <path d="M11 2l4 4-4 4"
+                            stroke={i===brokenFlow.length-2?'#8B1A1A':'#A8A8A8'} strokeWidth="1.2" strokeLinecap="square"
+                            opacity={visible?1:0} style={{ transition:`opacity 0.3s ease ${i*0.2+0.7}s` }} />
+                        </svg>
+                      </div>
+                    )}
+                  </React.Fragment>
+                );
+              })}
             </div>
             <div style={{ marginTop:18, fontFamily:"'Inter', sans-serif", fontSize:12, color:'#A8A8A8', lineHeight:1.6,
               opacity:visible?1:0, transition:'opacity 0.5s ease 1s' }}>Interest never converts. Leads disappear.</div>
           </div>
 
+          {/* Good flow */}
           <div style={{
             background:'#1A1A1A', border:'1px solid rgba(31,61,43,0.25)',
             padding: isMobile ? '28px 20px' : '36px',

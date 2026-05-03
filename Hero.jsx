@@ -1,5 +1,9 @@
 ﻿const Hero = ({ onNavigate }) => {
   const videoRef = React.useRef(null);
+  const overlayTopRef = React.useRef(null);
+  const overlayLeftRef = React.useRef(null);
+  const overlayBottomRef = React.useRef(null);
+  const ctaBtnRef = React.useRef(null);
   const [videoLoaded, setVideoLoaded] = React.useState(false);
   const [headlineVisible, setHeadlineVisible] = React.useState(false);
   const [statsVisible, setStatsVisible] = React.useState(false);
@@ -28,6 +32,48 @@
     tryPlay();
     return () => vid.removeEventListener('canplay', tryPlay);
   }, []);
+
+  // Mouse parallax on overlay divs + idle CTA pulse
+  React.useEffect(() => {
+    if (isMobile) return;
+    let cx = 0, cy = 0; // current lerped position
+    let tx = 0, ty = 0; // target position
+    let rafId = null;
+    let idleTimer = null;
+
+    const lerp = (a, b, f) => a + (b - a) * f;
+    const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+    const tick = () => {
+      cx = lerp(cx, tx, 0.08);
+      cy = lerp(cy, ty, 0.08);
+      if (overlayTopRef.current)
+        overlayTopRef.current.style.transform = `translateX(${clamp(cx * 0.012, -14, 14)}px) translateY(${clamp(cy * 0.012, -14, 14)}px)`;
+      if (overlayLeftRef.current)
+        overlayLeftRef.current.style.transform = `translateX(${clamp(cx * 0.008, -14, 14)}px) translateY(${clamp(cy * 0.008, -14, 14)}px)`;
+      if (overlayBottomRef.current)
+        overlayBottomRef.current.style.transform = `translateX(${clamp(cx * 0.006, -14, 14)}px) translateY(${clamp(cy * 0.006, -14, 14)}px)`;
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+
+    const onMove = (e) => {
+      tx = e.clientX - window.innerWidth / 2;
+      ty = e.clientY - window.innerHeight / 2;
+      if (ctaBtnRef.current) ctaBtnRef.current.classList.remove('pulse-idle');
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => {
+        if (ctaBtnRef.current) ctaBtnRef.current.classList.add('pulse-idle');
+      }, 3000);
+    };
+    window.addEventListener('mousemove', onMove);
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('mousemove', onMove);
+      clearTimeout(idleTimer);
+    };
+  }, [isMobile]);
 
   const words = ['Property', 'websites', 'that', 'turn', 'interest', 'into', 'booked', 'viewings.'];
 
@@ -63,15 +109,18 @@
 
       <div style={{ position:'absolute', inset:0, zIndex:2, background:'rgba(12,12,12,0.52)' }} />
 
-      <div style={{ position:'absolute', top:0, left:0, right:0, height:200, zIndex:3,
+      {/* Top vignette — parallax ref */}
+      <div ref={overlayTopRef} style={{ position:'absolute', top:0, left:0, right:0, height:200, zIndex:3,
         background:'linear-gradient(to bottom, rgba(10,10,10,0.95) 0%, rgba(10,10,10,0.4) 60%, transparent 100%)',
         pointerEvents:'none' }} />
 
-      <div style={{ position:'absolute', inset:0, zIndex:3,
+      {/* Left vignette — parallax ref */}
+      <div ref={overlayLeftRef} style={{ position:'absolute', inset:0, zIndex:3,
         background:'linear-gradient(105deg, rgba(10,10,10,0.88) 0%, rgba(10,10,10,0.65) 38%, rgba(10,10,10,0.2) 62%, transparent 100%)',
         pointerEvents:'none' }} />
 
-      <div style={{ position:'absolute', bottom:0, left:0, right:0, height:180, zIndex:3,
+      {/* Bottom vignette — parallax ref */}
+      <div ref={overlayBottomRef} style={{ position:'absolute', bottom:0, left:0, right:0, height:180, zIndex:3,
         background:'linear-gradient(to top, rgba(10,10,10,0.85) 0%, rgba(10,10,10,0.5) 45%, transparent 100%)',
         pointerEvents:'none' }} />
 
@@ -139,7 +188,7 @@
             transform: headlineVisible ? 'none' : 'translateY(16px)',
             transition:'all 0.7s cubic-bezier(0.4,0,0.2,1) 0.88s',
           }}>
-            <button onClick={() => onNavigate('demo')} style={{
+            <button ref={ctaBtnRef} onClick={() => onNavigate('demo')} style={{
               background:'#1F3D2B', color:'#F4F4F2', border:'none',
               fontFamily:"'Space Grotesk', sans-serif", fontWeight:600,
               fontSize:11, letterSpacing:'0.07em', textTransform:'uppercase',
@@ -194,6 +243,11 @@
           0%, 100% { opacity:1; box-shadow:0 0 8px rgba(31,61,43,0.8); }
           50% { opacity:0.5; box-shadow:0 0 16px rgba(31,61,43,0.4); }
         }
+        @keyframes ctaPulse {
+          0%, 100% { box-shadow: 0 0 20px rgba(31,61,43,0.5); }
+          50% { box-shadow: 0 0 38px rgba(31,61,43,0.9), 0 0 64px rgba(31,61,43,0.3); }
+        }
+        .pulse-idle { animation: ctaPulse 2.5s ease-in-out infinite; }
       `}</style>
     </section>
   );

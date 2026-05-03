@@ -1,9 +1,25 @@
 ﻿const OfferSection = () => {
+  const videoRef = React.useRef(null);
+  const [videoLoaded, setVideoLoaded] = React.useState(false);
+  const [hoveredCol, setHoveredCol] = React.useState(null);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+
   React.useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);
     window.addEventListener('resize', h);
     return () => window.removeEventListener('resize', h);
+  }, []);
+
+  React.useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    vid.muted = true;
+    vid.playsInline = true;
+    const tryPlay = () => vid.play().catch(() => {});
+    vid.addEventListener('canplay', tryPlay);
+    vid.addEventListener('loadeddata', () => setVideoLoaded(true));
+    tryPlay();
+    return () => vid.removeEventListener('canplay', tryPlay);
   }, []);
 
   const columns = [
@@ -17,8 +33,22 @@
       background:'#1A1A1A',
       padding: isMobile ? '72px 22px' : '112px 48px',
       borderTop:'1px solid rgba(168,168,168,0.08)',
+      position:'relative', overflow:'hidden',
     }}>
-      <div style={{ maxWidth:1280, margin:'0 auto' }}>
+      {/* Ambient video background */}
+      <video ref={videoRef} muted loop playsInline autoPlay
+        style={{
+          position:'absolute', inset:0, width:'100%', height:'100%',
+          objectFit:'cover', objectPosition:'center',
+          opacity: videoLoaded ? 1 : 0, transition:'opacity 1.8s ease', zIndex:0,
+        }}
+        src="uploads/offer-bg.mp4"
+      />
+      {/* Dark overlay */}
+      <div style={{ position:'absolute', inset:0, zIndex:1, background:'rgba(26,26,26,0.91)' }} />
+
+      {/* Content */}
+      <div style={{ maxWidth:1280, margin:'0 auto', position:'relative', zIndex:2 }}>
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:16 }}>
           <span style={{ display:'inline-block', width:24, height:1, background:'#8C7A5B' }} />
           <span style={{ fontFamily:"'Inter', sans-serif", fontSize:10, fontWeight:600,
@@ -37,24 +67,40 @@
         </div>
         <div style={{ display:'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
           gap:1, background:'rgba(168,168,168,0.08)', marginBottom: isMobile ? 24 : 44 }}>
-          {columns.map((col, i) => (
-            <div key={i} style={{ background:'#1A1A1A', padding: isMobile ? '24px 20px' : '32px 28px',
-              borderTop: i===1 ? '2px solid #1F3D2B' : '2px solid rgba(168,168,168,0.1)' }}>
-              <div style={{ fontFamily:"'Inter', sans-serif", fontSize:10, fontWeight:600,
-                letterSpacing:'0.12em', textTransform:'uppercase',
-                color: i===1 ? '#8C7A5B' : '#666', marginBottom:20 }}>{col.label}</div>
-              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
-                {col.items.map((item, j) => (
-                  <div key={j} style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
-                    <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink:0, marginTop:2 }}>
-                      <path d="M3 8l4 4 6-7" stroke={i===1?'#1F3D2B':'#A8A8A8'} strokeWidth="1.6" strokeLinecap="square"/>
-                    </svg>
-                    <span style={{ fontFamily:"'Inter', sans-serif", fontSize:13, color:'#A8A8A8', lineHeight:1.5 }}>{item}</span>
-                  </div>
-                ))}
+          {columns.map((col, i) => {
+            const isHov = hoveredCol === i;
+            const borderTop = isHov
+              ? '2px solid #1F3D2B'
+              : (i===1 ? '2px solid #1F3D2B' : '2px solid rgba(168,168,168,0.1)');
+            return (
+              <div key={i}
+                onMouseEnter={() => !isMobile && setHoveredCol(i)}
+                onMouseLeave={() => !isMobile && setHoveredCol(null)}
+                style={{
+                  background:'#1A1A1A', padding: isMobile ? '24px 20px' : '32px 28px',
+                  borderTop,
+                  transform: isHov && !isMobile ? 'translateY(-4px)' : 'none',
+                  boxShadow: isHov && !isMobile
+                    ? (i===1 ? '0 0 36px rgba(31,61,43,0.35)' : '0 0 20px rgba(31,61,43,0.18)')
+                    : 'none',
+                  transition:'all 220ms cubic-bezier(0.4,0,0.2,1)',
+                }}>
+                <div style={{ fontFamily:"'Inter', sans-serif", fontSize:10, fontWeight:600,
+                  letterSpacing:'0.12em', textTransform:'uppercase',
+                  color: i===1 ? '#8C7A5B' : '#666', marginBottom:20 }}>{col.label}</div>
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                  {col.items.map((item, j) => (
+                    <div key={j} style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink:0, marginTop:2 }}>
+                        <path d="M3 8l4 4 6-7" stroke={i===1?'#1F3D2B':'#A8A8A8'} strokeWidth="1.6" strokeLinecap="square"/>
+                      </svg>
+                      <span style={{ fontFamily:"'Inter', sans-serif", fontSize:13, color:'#A8A8A8', lineHeight:1.5 }}>{item}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:16, flexWrap:'wrap' }}>
           <button style={{
