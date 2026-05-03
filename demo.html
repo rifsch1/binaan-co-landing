@@ -1,0 +1,810 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <title>Binaan Co — Demo Experience v3</title>
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <style>
+    @font-face { font-family:'Space Grotesk'; src:url('./fonts/SpaceGrotesk-VariableFont_wght.ttf') format('truetype'); font-weight:100 900; }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html,body{background:#0a0a0a;width:100%;height:100%;overflow:hidden;}
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useRef} = React;
+
+// ── Tokens ────────────────────────────────────────────────────────
+const C = {
+  bg:'#1A1A1A', bg2:'#2C2C2C', ink:'#F4F4F2', muted:'#A8A8A8',
+  green:'#1F3D2B', greenHover:'#244A34', gold:'#8C7A5B',
+  border:'rgba(168,168,168,0.16)', borderS:'#A8A8A8',
+  ok:'#4CAF82',
+  fD:"'Space Grotesk',Helvetica,sans-serif",
+  fB:"'Inter',system-ui,sans-serif",
+};
+
+// ── Easing ────────────────────────────────────────────────────────
+const E={
+  o3: t=>1-Math.pow(1-t,3),
+  o4: t=>1-Math.pow(1-t,4),
+  oE: t=>t===1?1:1-Math.pow(2,-10*t),
+  iO: t=>t<0.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2,
+  si: t=>-(Math.cos(Math.PI*t)-1)/2,
+  li: t=>t,
+};
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v));
+const pg=(t,s,d)=>cl((t-s)/d,0,1);
+const ip=(a,b,t,ef=E.o3)=>a+(b-a)*ef(cl(t,0,1));
+
+// ── Shared ────────────────────────────────────────────────────────
+const Grain=()=><div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:50,opacity:.09,backgroundImage:'radial-gradient(rgba(255,255,255,.09) 1px,transparent 1.2px),radial-gradient(rgba(0,0,0,.15) 1px,transparent 1.2px)',backgroundSize:'3px 3px,5px 5px',backgroundPosition:'0 0,1px 2px',mixBlendMode:'overlay'}}/>;
+const Grid=()=><div style={{position:'absolute',inset:0,zIndex:1,pointerEvents:'none',backgroundImage:'linear-gradient(rgba(168,168,168,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(168,168,168,.028) 1px,transparent 1px)',backgroundSize:'80px 80px'}}/>;
+const Vig=({s=.42})=><div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:49,background:`radial-gradient(ellipse at center,transparent 48%,rgba(0,0,0,${s}) 100%)`}}/>;
+
+function Logo({op=1}){
+  return(
+    <div style={{position:'absolute',top:48,left:72,display:'flex',alignItems:'center',gap:10,zIndex:10,opacity:op}}>
+      <svg width="22" height="22" viewBox="0 0 64 64" fill="none">
+        <path d="M12 12L12 30M12 12L30 12" stroke={C.ink} strokeWidth="2.5" strokeLinecap="square"/>
+        <path d="M52 52L52 34M52 52L34 52" stroke={C.ink} strokeWidth="2.5" strokeLinecap="square"/>
+      </svg>
+      <span style={{fontFamily:C.fD,fontSize:19,fontWeight:700,letterSpacing:'.09em',textTransform:'uppercase',color:C.ink}}>BINAAN</span>
+    </div>
+  );
+}
+
+function Tag({children,op=1,right=true}){
+  return <div style={{position:'absolute',top:54,[right?'right':'left']:72,fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.14em',textTransform:'uppercase',color:C.gold,zIndex:10,opacity:op}}>{children}</div>;
+}
+
+// Caption: sits BELOW a defined boundary, never overlapping UI
+function Cap({children,op=1,bottom=40}){
+  return(
+    <div style={{position:'absolute',bottom,left:72,right:400,fontFamily:C.fB,fontSize:17,fontWeight:400,color:C.muted,zIndex:10,opacity:op,lineHeight:1.55}}>
+      {children}
+    </div>
+  );
+}
+
+// Thin horizontal rule that draws left→right
+function Rule({w,op=.25,mt=0,mb=0}){
+  return <div style={{width:w,height:1,background:C.muted,opacity:op,marginTop:mt,marginBottom:mb,flexShrink:0}}/>;
+}
+
+// ══════════════════════════════════════════════════════════════════
+// S1 — Opening  (0–4s)
+// ══════════════════════════════════════════════════════════════════
+function S1({t}){
+  const lt=t;
+  const lOp=ip(0,1,pg(lt,.1,.35));
+  const tOp=ip(0,1,pg(lt,.2,.3));
+  const h1y=ip(36,0,pg(lt,.3,.4),E.oE), h1o=ip(0,1,pg(lt,.3,.4));
+  const h2y=ip(36,0,pg(lt,.52,.4),E.oE),h2o=ip(0,1,pg(lt,.52,.4));
+  const dW=ip(0,460,pg(lt,.8,.5),E.oE);
+  const sO=ip(0,1,pg(lt,1.05,.4)),sY=ip(12,0,pg(lt,1.05,.4));
+  const drift=ip(0,-5,pg(lt,.3,3.7),E.si);
+
+  // Ghost system preview (right side) — fades in at 1.2s
+  const ghostO=ip(0,1,pg(lt,1.2,.8));
+  // Flow items appear one-by-one
+  const fOps=[0,1,2,3,4].map((i)=>ip(0,1,pg(lt,1.4+i*.18,.35)));
+  const fConnW=ip(0,100,pg(lt,1.6,.6),E.oE);
+
+  const flowSteps=[
+    {n:'01',label:'Property Page',sub:'Website layer'},
+    {n:'02',label:'Inquiry Captured',sub:'Lead qualification'},
+    {n:'03',label:'System Activated',sub:'Automated response'},
+    {n:'04',label:'Booking Request',sub:'Calendar flow'},
+    {n:'05',label:'Viewing Scheduled',sub:'Conversion complete'},
+  ];
+
+  return(
+    <div style={{position:'absolute',inset:0,background:C.bg}}>
+      <Grid/><Grain/><Vig s={.38}/>
+      {/* Left vertical rule */}
+      <div style={{position:'absolute',left:72,top:0,bottom:0,width:1,background:`linear-gradient(to bottom,transparent,rgba(168,168,168,.12) 25%,rgba(168,168,168,.12) 75%,transparent)`}}/>
+      <Logo op={lOp}/>
+      <Tag op={tOp}>DEMO EXPERIENCE</Tag>
+
+      {/* Left: headline */}
+      <div style={{position:'absolute',top:'50%',left:120,transform:'translateY(-50%)',maxWidth:820}}>
+        <div style={{fontFamily:C.fB,fontSize:12,fontWeight:600,letterSpacing:'.18em',textTransform:'uppercase',color:C.gold,marginBottom:24,opacity:tOp}}>PROPERTY CONVERSION SYSTEM</div>
+        <div style={{fontFamily:C.fD,fontSize:88,fontWeight:700,lineHeight:.96,letterSpacing:'-.035em',color:C.ink,transform:`translateY(${drift+h1y}px)`,opacity:h1o}}>From property</div>
+        <div style={{fontFamily:C.fD,fontSize:88,fontWeight:700,lineHeight:.96,letterSpacing:'-.035em',color:C.ink,transform:`translateY(${drift+h2y}px)`,opacity:h2o,marginBottom:36}}>interest to bookings.</div>
+        <div style={{width:dW,height:1,background:C.muted,opacity:.28,marginBottom:28}}/>
+        <div style={{fontFamily:C.fB,fontSize:19,fontWeight:400,color:C.muted,lineHeight:1.6,maxWidth:580,opacity:sO,transform:`translateY(${sY}px)`}}>
+          A premium property page with the lead capture, response, and booking system behind it.
+        </div>
+      </div>
+
+      {/* Right: ghost system flow */}
+      <div style={{position:'absolute',right:72,top:'50%',transform:'translateY(-50%)',width:340,opacity:ghostO}}>
+        <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.14em',textTransform:'uppercase',color:C.muted,marginBottom:20}}>SYSTEM FLOW</div>
+        {flowSteps.map((s,i)=>(
+          <React.Fragment key={i}>
+            <div style={{display:'flex',alignItems:'center',gap:14,opacity:fOps[i]}}>
+              <div style={{width:28,height:28,background:'rgba(255,255,255,.04)',border:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:C.fD,fontSize:11,fontWeight:700,color:C.gold,flexShrink:0}}>{s.n}</div>
+              <div>
+                <div style={{fontFamily:C.fD,fontSize:14,fontWeight:600,color:'rgba(244,244,242,.5)'}}>{s.label}</div>
+                <div style={{fontFamily:C.fB,fontSize:11,color:'rgba(168,168,168,.4)',marginTop:1}}>{s.sub}</div>
+              </div>
+            </div>
+            {i<4&&<div style={{width:1,height:18,background:'rgba(168,168,168,.15)',marginLeft:13,opacity:fOps[i]}}/>}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Ghost number */}
+      <div style={{position:'absolute',right:80,bottom:20,fontFamily:C.fD,fontSize:220,fontWeight:700,color:'rgba(244,244,242,.025)',letterSpacing:'-.05em',lineHeight:1,userSelect:'none',opacity:h2o}}>01</div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// S2 — Property Page  (4–8s)
+// ══════════════════════════════════════════════════════════════════
+function S2({t}){
+  const lt=t-4;
+  const lOp=ip(0,1,pg(lt,.1,.3));
+  const tOp=ip(0,1,pg(lt,.2,.3));
+  const brY=ip(44,0,pg(lt,.2,.45),E.oE);
+  const brO=ip(0,1,pg(lt,.2,.45));
+  const scY=ip(0,-130,pg(lt,.7,3.3),E.iO);
+  const imgSc=ip(1,1.04,pg(lt,0,4),E.li);
+  const capO=ip(0,1,pg(lt,.8,.4));
+
+  const GALLERY=[
+    {src:'./assets/property-hero.jpg',label:'EXTERIOR',pos:'center'},
+    {src:'./assets/prop-exterior.jpg',label:'EXTERIOR II',pos:'40% center'},
+    {src:'./assets/prop-kitchen.jpg',label:'INTERIOR',pos:'center'},
+    {src:'./assets/prop-bedroom.jpg',label:'MASTER',pos:'center'},
+    {src:'./assets/prop-aerial.jpg',label:'AERIAL',pos:'center 30%'},
+  ];
+
+  return(
+    <div style={{position:'absolute',inset:0,background:'#0e0e0e'}}>
+      <Grid/><Grain/><Vig s={.28}/>
+      <Logo op={lOp}/>
+      <Tag op={tOp}>01 / WEBSITE LAYER</Tag>
+
+      {/* Browser frame: top:100 bottom:72 to leave room for caption */}
+      <div style={{position:'absolute',left:72,right:72,top:100,bottom:72,background:'#0c0c0c',border:`1px solid ${C.border}`,display:'flex',flexDirection:'column',overflow:'hidden',transform:`translateY(${brY}px)`,opacity:brO}}>
+        {/* Bar */}
+        <div style={{height:36,background:'#181818',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',padding:'0 14px',gap:7,flexShrink:0}}>
+          {[0,1,2].map(i=><div key={i} style={{width:9,height:9,borderRadius:'50%',background:C.muted,opacity:.28}}/>)}
+          <div style={{flex:1,margin:'0 14px',height:21,background:'rgba(255,255,255,.04)',border:`1px solid ${C.border}`,borderRadius:2,display:'flex',alignItems:'center',padding:'0 10px',fontFamily:C.fB,fontSize:11,color:C.muted,maxWidth:420}}>graphiteresidence.binaan.co</div>
+        </div>
+        {/* Page */}
+        <div style={{flex:1,overflow:'hidden',position:'relative'}}>
+          <div style={{position:'absolute',top:0,left:0,right:0,transform:`translateY(${scY}px)`}}>
+            {/* Hero */}
+            <div style={{width:'100%',height:490,position:'relative',overflow:'hidden'}}>
+              <div style={{position:'absolute',inset:0,backgroundImage:`url('./assets/property-hero.jpg')`,backgroundSize:'cover',backgroundPosition:'center',transform:`scale(${imgSc})`,transformOrigin:'center'}}/>
+              <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(12,12,12,.08) 0%,rgba(12,12,12,.72) 100%)'}}/>
+              <div style={{position:'absolute',bottom:0,left:0,right:0,padding:'36px 44px'}}>
+                <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.16em',textTransform:'uppercase',color:C.gold,border:`1px solid rgba(140,122,91,.3)`,padding:'5px 10px',display:'inline-block',marginBottom:12}}>PREMIUM LISTING · KUALA LUMPUR</div>
+                <div style={{fontFamily:C.fD,fontSize:50,fontWeight:700,letterSpacing:'-.025em',lineHeight:1,color:C.ink}}>The Graphite Residence</div>
+                <div style={{fontFamily:C.fB,fontSize:16,color:C.muted,marginTop:9,letterSpacing:'.03em'}}>Private hillside residence · Kuala Lumpur · RM 2.5M–3M</div>
+                <div style={{display:'flex',gap:12,marginTop:22}}>
+                  <button style={{padding:'13px 32px',background:C.green,color:C.ink,fontFamily:C.fD,fontSize:13,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',border:'none',boxShadow:'0 0 24px rgba(31,61,43,.5)',cursor:'pointer'}}>Book a Viewing</button>
+                  <button style={{padding:'13px 28px',background:'transparent',color:C.ink,fontFamily:C.fD,fontSize:13,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',border:'1px solid rgba(244,244,242,.28)',cursor:'pointer'}}>Request Details</button>
+                </div>
+              </div>
+            </div>
+            {/* Details strip */}
+            <div style={{background:C.bg2,borderBottom:`1px solid ${C.border}`,padding:'20px 44px',display:'flex'}}>
+              {[['Type','Bungalow'],['Built-up','4,800 sq ft'],['Beds / Baths','5 + 6'],['Tenure','Freehold']].map(([l,v],i)=>(
+                <div key={i} style={{flex:1,borderRight:i<3?`1px solid ${C.border}`:'none',paddingRight:24,marginRight:24}}>
+                  <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.13em',textTransform:'uppercase',color:C.muted,marginBottom:5}}>{l}</div>
+                  <div style={{fontFamily:C.fD,fontSize:17,fontWeight:600,color:C.ink}}>{v}</div>
+                </div>
+              ))}
+            </div>
+            {/* Gallery */}
+            <div style={{padding:'20px 44px',background:C.bg,display:'flex',gap:8}}>
+              {GALLERY.map((g,i)=>(
+                <div key={i} style={{flex:1,height:88,position:'relative',overflow:'hidden',border:`1px solid ${C.border}`}}>
+                  <div style={{position:'absolute',inset:0,backgroundImage:`url('${g.src}')`,backgroundSize:'cover',backgroundPosition:g.pos}}/>
+                  <div style={{position:'absolute',inset:0,background:'rgba(12,12,12,.35)'}}/>
+                  <div style={{position:'absolute',bottom:5,left:8,fontFamily:C.fB,fontSize:9,fontWeight:600,letterSpacing:'.12em',textTransform:'uppercase',color:'rgba(244,244,242,.6)'}}>{g.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <Cap op={capO} bottom={14}>A property page designed around one action.</Cap>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// S3 — Lead Capture  (8–12.5s)
+// ══════════════════════════════════════════════════════════════════
+function S3({t}){
+  const lt=t-8;
+  const lOp=ip(0,1,pg(lt,.1,.3));
+  const tOp=ip(0,1,pg(lt,.2,.3));
+  const brX=ip(-22,0,pg(lt,.15,.4),E.oE),brO=ip(0,1,pg(lt,.15,.4));
+  const rtX=ip(22,0,pg(lt,.25,.4),E.oE),rtO=ip(0,1,pg(lt,.25,.4));
+  const capO=ip(0,1,pg(lt,.7,.35));
+
+  // Sequential field fill timing
+  const nameActive=lt>=.65&&lt<1.25;
+  const phoneActive=lt>=1.25&&lt<1.85;
+  const budgetActive=lt>=1.85&&lt<2.3;
+  const timeActive=lt>=2.3&&lt<2.7;
+
+  // Right cards activate as fields fill
+  const r1O=ip(0,1,pg(lt,.7,.3));
+  const r2O=ip(0,1,pg(lt,1.25,.3));
+  const r3O=ip(0,1,pg(lt,1.85,.3));
+  const r4O=ip(0,1,pg(lt,2.7,.3));
+  const rAct=[lt>=.7,lt>=1.25,lt>=1.85,lt>=2.7];
+
+  const ctaGlow=ip(0,30,pg(lt,3.1,.45));
+  const ctaO=ip(1,0,pg(lt,3.55,.28));
+  const confO=ip(0,1,pg(lt,3.75,.3));
+
+  const fB=(a)=>a?C.green:C.border;
+  const fS=(a)=>a?`0 0 0 1px rgba(31,61,43,.45)`:'none';
+
+  return(
+    <div style={{position:'absolute',inset:0,background:C.bg}}>
+      <Grid/><Grain/><Vig s={.3}/>
+      <Logo op={lOp}/>
+      <Tag op={tOp}>02 / LEAD CAPTURE</Tag>
+
+      {/* Left: browser with form (top:100 bottom:72) */}
+      <div style={{position:'absolute',left:72,top:100,bottom:72,width:820,background:'#0c0c0c',border:`1px solid ${C.border}`,display:'flex',flexDirection:'column',overflow:'hidden',transform:`translateX(${brX}px)`,opacity:brO}}>
+        <div style={{height:34,background:'#181818',borderBottom:`1px solid ${C.border}`,display:'flex',alignItems:'center',padding:'0 14px',gap:7,flexShrink:0}}>
+          {[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:'50%',background:C.muted,opacity:.28}}/>)}
+          <div style={{fontFamily:C.fB,fontSize:11,color:C.muted,marginLeft:12}}>graphiteresidence.binaan.co</div>
+        </div>
+        <div style={{flex:1,overflow:'hidden',position:'relative'}}>
+          <div style={{position:'absolute',top:0,left:0,right:0}}>
+            {/* Mini hero */}
+            <div style={{height:148,position:'relative',overflow:'hidden'}}>
+              <div style={{position:'absolute',inset:0,backgroundImage:`url('./assets/property-hero.jpg')`,backgroundSize:'cover',backgroundPosition:'center 35%'}}/>
+              <div style={{position:'absolute',inset:0,background:'linear-gradient(to bottom,rgba(12,12,12,.2),rgba(12,12,12,.88))'}}/>
+              <div style={{position:'absolute',bottom:18,left:24}}>
+                <div style={{fontFamily:C.fD,fontSize:22,fontWeight:700,letterSpacing:'-.02em',color:C.ink}}>The Graphite Residence</div>
+                <div style={{fontFamily:C.fB,fontSize:13,color:C.muted,marginTop:3}}>Private hillside · Kuala Lumpur</div>
+              </div>
+            </div>
+            {/* Form body */}
+            <div style={{padding:'20px 26px 24px',background:C.bg}}>
+              <div style={{fontFamily:C.fD,fontSize:17,fontWeight:700,color:C.ink,marginBottom:16,letterSpacing:'-.01em'}}>Request a Viewing</div>
+              {[
+                {label:'FULL NAME',ph:'e.g. Ahmad Razif',active:nameActive,val:'Ahmad Razif'},
+                {label:'WHATSAPP',ph:'+60 12-345 6789',active:phoneActive,val:'+60 12-345 6789'},
+              ].map((f,i)=>(
+                <div key={i} style={{marginBottom:10}}>
+                  <div style={{fontFamily:C.fB,fontSize:10,fontWeight:600,letterSpacing:'.12em',textTransform:'uppercase',color:C.muted,marginBottom:4}}>{f.label}</div>
+                  <div style={{height:36,background:'rgba(255,255,255,.04)',border:`1px solid ${fB(f.active)}`,boxShadow:fS(f.active),padding:'0 11px',display:'flex',alignItems:'center',fontFamily:C.fB,fontSize:13,color:f.active?C.ink:'rgba(168,168,168,.45)',transition:'border-color .15s'}}>
+                    {f.active||lt>=(f.label==='FULL NAME'?1.25:1.85)?f.val:f.ph}
+                  </div>
+                </div>
+              ))}
+              {[
+                {label:'BUDGET RANGE',val:'RM 2.5M – RM 3M',active:budgetActive},
+                {label:'VIEWING TIME',val:'This weekend',active:timeActive},
+                {label:'BUYING TIMELINE',val:'1 – 3 months',active:false},
+              ].map((f,i)=>(
+                <div key={i} style={{marginBottom:10}}>
+                  <div style={{fontFamily:C.fB,fontSize:10,fontWeight:600,letterSpacing:'.12em',textTransform:'uppercase',color:C.muted,marginBottom:4}}>{f.label}</div>
+                  <div style={{height:36,background:'rgba(255,255,255,.04)',border:`1px solid ${fB(f.active)}`,padding:'0 11px',display:'flex',alignItems:'center',fontFamily:C.fB,fontSize:13,color:lt>=2.7?C.ink:'rgba(168,168,168,.4)',transition:'border-color .15s'}}>{f.val}</div>
+                </div>
+              ))}
+              <button style={{width:'100%',height:40,marginTop:8,background:C.green,color:C.ink,fontFamily:C.fD,fontSize:12,fontWeight:600,letterSpacing:'.07em',textTransform:'uppercase',border:'none',boxShadow:`0 0 ${ctaGlow}px rgba(31,61,43,.55)`,opacity:ctaO,cursor:'pointer'}}>Request Viewing</button>
+              <div style={{width:'100%',height:40,background:'rgba(76,175,130,.08)',border:`1px solid rgba(76,175,130,.25)`,display:'flex',alignItems:'center',justifyContent:'center',gap:8,fontFamily:C.fD,fontSize:12,fontWeight:600,letterSpacing:'.07em',textTransform:'uppercase',color:C.ok,opacity:confO,marginTop:0}}>
+                <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke={C.ok} strokeWidth="2" strokeLinecap="round"/></svg>
+                Inquiry Received
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Right: qualification cards */}
+      <div style={{position:'absolute',left:916,right:72,top:100,bottom:72,display:'flex',flexDirection:'column',justifyContent:'center',transform:`translateX(${rtX}px)`,opacity:rtO}}>
+        <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.14em',textTransform:'uppercase',color:C.muted,marginBottom:18}}>QUALIFICATION LAYER</div>
+        {[
+          {n:'01',t:'Identity & Contact',s:'Name + WhatsApp',o:r1O,a:rAct[0]},
+          {n:'02',t:'Purchase Intent',s:'Budget + buying timeline',o:r2O,a:rAct[1]},
+          {n:'03',t:'Viewing Preference',s:'Slot + urgency signal',o:r3O,a:rAct[2]},
+          {n:'04',t:'Qualification Score',s:'High / Mid / Low intent',o:r4O,a:rAct[3]},
+        ].map(row=>(
+          <div key={row.n} style={{padding:'16px 18px',border:`1px solid ${row.a?'rgba(31,61,43,.5)':C.border}`,marginBottom:8,display:'flex',alignItems:'center',gap:14,opacity:row.o,background:row.a?'rgba(31,61,43,.06)':'rgba(255,255,255,.012)',transition:'border-color .3s,background .3s'}}>
+            <div style={{width:30,height:30,background:row.a?C.green:C.bg2,border:`1px solid ${row.a?C.green:C.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:C.fD,fontSize:11,fontWeight:700,color:row.a?C.ink:C.gold,flexShrink:0,transition:'all .25s'}}>{row.n}</div>
+            <div>
+              <div style={{fontFamily:C.fD,fontSize:16,fontWeight:600,color:C.ink}}>{row.t}</div>
+              <div style={{fontFamily:C.fB,fontSize:13,color:C.muted,marginTop:3}}>{row.s}</div>
+            </div>
+            {row.a&&<div style={{marginLeft:'auto',width:6,height:6,borderRadius:'50%',background:C.ok,flexShrink:0}}/>}
+          </div>
+        ))}
+        {/* Score badge */}
+        <div style={{marginTop:8,padding:'14px 18px',border:`1px solid rgba(76,175,130,.2)`,background:'rgba(76,175,130,.05)',display:'flex',justifyContent:'space-between',alignItems:'center',opacity:r4O}}>
+          <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:C.muted}}>INTENT SCORE</div>
+          <div style={{fontFamily:C.fD,fontSize:16,fontWeight:700,color:C.ok}}>HIGH</div>
+        </div>
+      </div>
+
+      <Cap op={capO} bottom={14}>Turns visitors into qualified inquiries.</Cap>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// S4 — System Activation  (12.5–16.5s)
+// ══════════════════════════════════════════════════════════════════
+function S4({t}){
+  const lt=t-12.5;
+  const lOp=ip(0,1,pg(lt,.1,.3));
+  const tOp=ip(0,1,pg(lt,.2,.3));
+  const lX=ip(-22,0,pg(lt,.15,.4),E.oE),lO=ip(0,1,pg(lt,.15,.4));
+  const rX=ip(22,0,pg(lt,.25,.4),E.oE),rO=ip(0,1,pg(lt,.25,.4));
+  const capO=ip(0,1,pg(lt,.65,.35));
+
+  // Connector line (left card → right flow)
+  const connW=ip(0,100,pg(lt,.7,.55),E.oE);
+
+  const nS=[.75,1.2,1.65,2.1,2.55];
+  const nV=nS.map(s=>ip(0,1,pg(lt,s,.3)));
+  const nA=nS.map(s=>lt>=s+.22);
+  const cV=nS.map(s=>ip(0,1,pg(lt,s+.28,.25)));
+  const cA=nS.map(s=>lt>=s+.42);
+  const chkO=ip(0,1,pg(lt,3.2,.35));
+
+  return(
+    <div style={{position:'absolute',inset:0,background:C.bg}}>
+      <Grid/><Grain/><Vig s={.3}/>
+      <Logo op={lOp}/>
+      <Tag op={tOp}>03 / SYSTEM LAYER</Tag>
+
+      {/* Left: submitted inquiry card */}
+      <div style={{position:'absolute',left:72,top:100,bottom:72,width:760,background:C.bg2,border:`1px solid ${C.border}`,padding:'38px 40px',display:'flex',flexDirection:'column',transform:`translateX(${lX}px)`,opacity:lO}}>
+        <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.14em',textTransform:'uppercase',color:C.muted,marginBottom:14}}>INQUIRY SUBMITTED</div>
+        <div style={{fontFamily:C.fD,fontSize:26,fontWeight:700,letterSpacing:'-.025em',color:C.ink,marginBottom:6}}>The Graphite Residence</div>
+        <div style={{fontFamily:C.fB,fontSize:14,color:C.muted,lineHeight:1.55,marginBottom:24}}>Viewing request received. Processing now.</div>
+
+        {/* Data grid */}
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,marginBottom:24}}>
+          {[['Buyer','Ahmad Razif'],['Budget','RM 2.5–3M'],['Timeline','1–3 months'],['Slot','This weekend'],['Intent Score','HIGH'],['Status','Processing']].map(([l,v])=>(
+            <div key={l} style={{padding:'10px 14px',background:'rgba(255,255,255,.04)',border:`1px solid ${C.border}`}}>
+              <div style={{fontFamily:C.fB,fontSize:10,fontWeight:600,letterSpacing:'.11em',textTransform:'uppercase',color:C.muted,marginBottom:4}}>{l}</div>
+              <div style={{fontFamily:C.fD,fontSize:14,fontWeight:600,color:v==='HIGH'?C.ok:C.ink}}>{v}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{width:'100%',height:1,background:C.border,marginBottom:20}}/>
+        <div style={{display:'flex',alignItems:'center',gap:12,opacity:chkO}}>
+          <div style={{width:30,height:30,background:C.green,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+            <svg width="13" height="13" viewBox="0 0 14 14" fill="none"><path d="M2 7l4 4 6-6" stroke={C.ink} strokeWidth="2" strokeLinecap="round"/></svg>
+          </div>
+          <div style={{fontFamily:C.fD,fontSize:16,fontWeight:600,color:C.ink}}>System activated</div>
+        </div>
+      </div>
+
+      {/* Animated connector */}
+      <div style={{position:'absolute',left:836,top:'50%',transform:'translateY(-50%)',width:76,height:1,overflow:'hidden',zIndex:5}}>
+        <div style={{width:`${connW}%`,height:'100%',background:`linear-gradient(to right,${C.green},rgba(31,61,43,.3))`}}/>
+      </div>
+      <div style={{position:'absolute',left:908,top:'50%',transform:'translateY(-8px)',zIndex:5,opacity:ip(0,1,pg(lt,.85,.3))}}>
+        <svg width="6" height="16" viewBox="0 0 6 16" fill="none">
+          <path d="M0 0L6 8L0 16" stroke={C.green} strokeWidth="1" fill="none"/>
+        </svg>
+      </div>
+
+      {/* Right: flow */}
+      <div style={{position:'absolute',left:924,right:72,top:100,bottom:72,display:'flex',flexDirection:'column',justifyContent:'center',transform:`translateX(${rX}px)`,opacity:rO}}>
+        <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.14em',textTransform:'uppercase',color:C.muted,marginBottom:22}}>AUTOMATED RESPONSE FLOW</div>
+        {['Inquiry Submitted','Lead Qualified','Agent Notified','Buyer Reply Sent','Viewing Request Created'].map((label,i)=>(
+          <React.Fragment key={i}>
+            <div style={{display:'flex',alignItems:'center',gap:14,opacity:nV[i]}}>
+              <div style={{width:32,height:32,flexShrink:0,background:nA[i]?C.green:C.bg,border:`1px solid ${nA[i]?C.green:C.border}`,display:'flex',alignItems:'center',justifyContent:'center',fontFamily:C.fD,fontSize:12,fontWeight:700,color:nA[i]?C.ink:C.muted,transition:'all .2s',fontVariantNumeric:'tabular-nums'}}>{String(i+1).padStart(2,'0')}</div>
+              <div style={{fontFamily:C.fD,fontSize:18,fontWeight:600,color:nA[i]?C.ink:C.muted,letterSpacing:'-.01em',transition:'color .2s'}}>{label}</div>
+              {nA[i]&&<div style={{marginLeft:'auto',width:5,height:5,borderRadius:'50%',background:C.ok,flexShrink:0}}/>}
+            </div>
+            {i<4&&<div style={{width:1,height:18,background:cA[i]?C.green:C.border,marginLeft:15,opacity:cV[i],transition:'background .2s'}}/>}
+          </React.Fragment>
+        ))}
+      </div>
+
+      <Cap op={capO} bottom={14}>The system starts working after the click.</Cap>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// S5 — Response System  (16.5–20.5s)
+// ══════════════════════════════════════════════════════════════════
+function S5({t}){
+  const lt=t-16.5;
+  const lOp=ip(0,1,pg(lt,.1,.3));
+  const tOp=ip(0,1,pg(lt,.2,.3));
+  const c1X=ip(32,0,pg(lt,.2,.45),E.oE),c1O=ip(0,1,pg(lt,.2,.45));
+  const c2X=ip(20,0,pg(lt,.6,.45),E.oE),c2O=ip(0,1,pg(lt,.6,.45));
+  const glwO=ip(0,1,pg(lt,.35,.6));
+  const capO=ip(0,1,pg(lt,.8,.35));
+
+  const pulse=Math.max(0,lt-.55);
+  const pSc=1+.6*Math.sin(pulse*Math.PI*1.9)*Math.min(1,pulse*.9);
+  const rowsO=[0,1,2,3].map(i=>ip(0,1,pg(lt,.9+i*.1,.3)));
+  const rowsY=[0,1,2,3].map(i=>ip(7,0,pg(lt,.9+i*.1,.3)));
+
+  return(
+    <div style={{position:'absolute',inset:0,background:C.bg}}>
+      <Grid/><Grain/><Vig s={.32}/>
+      <Logo op={lOp}/>
+      <Tag op={tOp}>04 / RESPONSE SYSTEM</Tag>
+
+      {/* Ambient glow */}
+      <div style={{position:'absolute',width:720,height:720,background:'radial-gradient(circle,rgba(31,61,43,.13) 0%,transparent 65%)',top:'50%',left:'50%',transform:'translate(-50%,-50%)',pointerEvents:'none',zIndex:1,opacity:glwO}}/>
+
+      {/* Main agent notification card */}
+      <div style={{position:'absolute',top:'50%',left:'50%',width:680,background:C.bg2,border:`1px solid ${C.border}`,padding:'34px 40px',zIndex:5,opacity:c1O,transform:`translate(calc(-50% - 100px + ${c1X}px),-50%)`}}>
+        <div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:20}}>
+          <div style={{display:'flex',alignItems:'center',gap:9}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:C.ok,transform:`scale(${pSc})`}}/>
+            <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.12em',textTransform:'uppercase',color:C.ok}}>New Qualified Inquiry</div>
+          </div>
+          <div style={{fontFamily:C.fB,fontSize:11,color:C.muted}}>Just now</div>
+        </div>
+        <div style={{fontFamily:C.fD,fontSize:26,fontWeight:700,letterSpacing:'-.025em',color:C.ink,marginBottom:5}}>The Graphite Residence</div>
+        <div style={{fontFamily:C.fB,fontSize:14,color:C.muted,marginBottom:22,lineHeight:1.5}}>Hillside Bungalow · Kuala Lumpur · Viewing requested this week</div>
+        <div style={{width:'100%',height:1,background:C.border,marginBottom:20}}/>
+        {[['Buyer','Ahmad Razif',null],['Budget','RM 2.5M – 3M',null],['Timeline','1 – 3 months',null],['Intent Score','High',C.ok]].map(([l,v,c],i)=>(
+          <div key={l} style={{display:'flex',justifyContent:'space-between',alignItems:'baseline',marginBottom:12,opacity:rowsO[i],transform:`translateY(${rowsY[i]}px)`}}>
+            <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:C.muted}}>{l}</div>
+            <div style={{fontFamily:C.fD,fontSize:15,fontWeight:600,color:c||C.ink}}>{v}</div>
+          </div>
+        ))}
+        <div style={{marginTop:20,paddingTop:18,borderTop:`1px solid ${C.border}`,display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <div>
+            <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:C.muted}}>Suggested Action</div>
+            <div style={{fontFamily:C.fD,fontSize:15,fontWeight:600,color:C.ink,marginTop:4}}>Confirm viewing slot</div>
+          </div>
+          <button style={{padding:'10px 22px',background:C.green,color:C.ink,fontFamily:C.fD,fontSize:11,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',border:'none',boxShadow:'0 0 18px rgba(31,61,43,.4)',cursor:'pointer'}}>Respond Now</button>
+        </div>
+      </div>
+
+      {/* Secondary buyer-side card */}
+      <div style={{position:'absolute',top:'50%',right:72,width:420,background:'rgba(26,26,26,.95)',border:`1px solid ${C.border}`,padding:'28px 32px',zIndex:4,opacity:c2O,transform:`translate(${c2X}px,-50%)`}}>
+        <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.12em',textTransform:'uppercase',color:C.muted,marginBottom:16}}>BUYER CONFIRMATION</div>
+        <div style={{fontFamily:C.fD,fontSize:18,fontWeight:700,color:C.ink,marginBottom:8,letterSpacing:'-.01em'}}>Your request has been received.</div>
+        <div style={{fontFamily:C.fB,fontSize:14,color:C.muted,lineHeight:1.55,marginBottom:20}}>We'll send you viewing slot options within the hour.</div>
+        <div style={{width:'100%',height:1,background:C.border,marginBottom:18}}/>
+        <div style={{fontFamily:C.fB,fontSize:12,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:C.muted,marginBottom:10}}>SELECT A SLOT</div>
+        {['Thursday · 3:00 PM','Friday · 11:00 AM','Saturday · 5:00 PM'].map((s,i)=>(
+          <div key={i} style={{padding:'9px 14px',border:`1px solid ${i===2?'rgba(31,61,43,.4)':C.border}`,marginBottom:6,fontFamily:C.fB,fontSize:13,color:i===2?C.ink:C.muted,background:i===2?'rgba(31,61,43,.1)':'transparent',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+            {s}
+            {i===2&&<span style={{fontSize:10,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:C.ok}}>PREFERRED</span>}
+          </div>
+        ))}
+      </div>
+
+      <Cap op={capO} bottom={14}>Replies before the lead goes cold.</Cap>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// S6 — Booking Flow  (20.5–24.5s)
+// ══════════════════════════════════════════════════════════════════
+function S6({t}){
+  const lt=t-20.5;
+  const lOp=ip(0,1,pg(lt,.1,.3));
+  const tOp=ip(0,1,pg(lt,.2,.3));
+  const panY=ip(26,0,pg(lt,.2,.42),E.oE),panO=ip(0,1,pg(lt,.2,.42));
+  const capO=ip(0,1,pg(lt,.7,.35));
+  const slO=[0,1,2].map(i=>ip(0,1,pg(lt,.65+i*.1,.32)));
+  const slY=[0,1,2].map(i=>ip(9,0,pg(lt,.65+i*.1,.32)));
+  const satSel=lt>=1.55;
+  const confO=ip(0,1,pg(lt,1.95,.38));
+  const sumO=ip(0,1,pg(lt,2.55,.4));
+  const sumY=ip(10,0,pg(lt,2.55,.4));
+
+  return(
+    <div style={{position:'absolute',inset:0,background:C.bg}}>
+      <Grid/><Grain/><Vig s={.3}/>
+      <Logo op={lOp}/>
+      <Tag op={tOp}>05 / BOOKING FLOW</Tag>
+
+      <div style={{position:'absolute',top:'50%',left:'50%',width:860,background:C.bg2,border:`1px solid ${C.border}`,overflow:'hidden',opacity:panO,transform:`translate(-50%,calc(-50% + ${panY}px))`}}>
+        {/* Header */}
+        <div style={{padding:'24px 34px 20px',borderBottom:`1px solid ${C.border}`,display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
+          <div>
+            <div style={{fontFamily:C.fD,fontSize:21,fontWeight:700,letterSpacing:'-.02em',color:C.ink}}>Select a Viewing Slot</div>
+            <div style={{fontFamily:C.fB,fontSize:14,color:C.muted,marginTop:4}}>The Graphite Residence · Kuala Lumpur</div>
+          </div>
+          <div style={{textAlign:'right'}}>
+            <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:C.muted}}>MAY 2026</div>
+            <div style={{fontFamily:C.fB,fontSize:12,color:C.muted,marginTop:3}}>Ahmad Razif</div>
+          </div>
+        </div>
+        {/* Slots */}
+        <div style={{padding:'18px 34px',display:'flex',flexDirection:'column',gap:8}}>
+          {[
+            {day:'Thursday',time:'3:00 PM · 45 min',sel:false,i:0},
+            {day:'Friday',time:'11:00 AM · 45 min',sel:false,i:1},
+            {day:'Saturday',time:'5:00 PM · 45 min',sel:satSel,i:2},
+          ].map(s=>(
+            <div key={s.day} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'14px 18px',background:s.sel?'rgba(31,61,43,.1)':C.bg,border:`1px solid ${s.sel?C.green:C.border}`,opacity:slO[s.i],transform:`translateY(${slY[s.i]}px)`,transition:'border-color .25s,background .25s'}}>
+              <div>
+                <div style={{fontFamily:C.fD,fontSize:16,fontWeight:600,color:C.ink}}>{s.day}</div>
+                <div style={{fontFamily:C.fB,fontSize:13,color:C.muted,marginTop:2}}>{s.time}</div>
+              </div>
+              <div style={{fontFamily:C.fB,fontSize:10,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',padding:'4px 12px',border:`1px solid ${s.sel?C.green:C.border}`,color:s.sel?C.ink:C.muted,background:s.sel?C.green:'transparent',transition:'all .25s'}}>
+                {s.sel?'SELECTED':'AVAILABLE'}
+              </div>
+            </div>
+          ))}
+        </div>
+        {/* Confirm bar */}
+        <div style={{padding:'16px 34px',borderTop:`1px solid ${C.border}`,background:C.bg,display:'flex',alignItems:'center',justifyContent:'space-between',opacity:confO}}>
+          <div>
+            <div style={{fontFamily:C.fD,fontSize:16,fontWeight:600,color:C.ink}}>Viewing Request Scheduled</div>
+            <div style={{fontFamily:C.fB,fontSize:13,color:C.muted,marginTop:2}}>Saturday, 5:00 PM · The Graphite Residence</div>
+          </div>
+          <button style={{padding:'11px 28px',background:C.green,color:C.ink,fontFamily:C.fD,fontSize:12,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',border:'none',boxShadow:'0 0 22px rgba(31,61,43,.45)',cursor:'pointer'}}>Confirm Booking</button>
+        </div>
+      </div>
+
+      {/* Post-confirm summary strip */}
+      <div style={{position:'absolute',bottom:72,left:'50%',transform:`translate(-50%,${sumY}px)`,width:860,display:'flex',gap:0,opacity:sumO}}>
+        {[
+          {icon:'✓',label:'Viewing Scheduled',sub:'Saturday, 5:00 PM'},
+          {icon:'✓',label:'Agent Notified',sub:'Response within 1hr'},
+          {icon:'✓',label:'Buyer Confirmed',sub:'Ahmad Razif'},
+        ].map((s,i)=>(
+          <div key={i} style={{flex:1,padding:'12px 18px',background:C.bg2,border:`1px solid ${C.border}`,borderRight:i<2?'none':`1px solid ${C.border}`,display:'flex',alignItems:'center',gap:12}}>
+            <div style={{width:22,height:22,background:C.green,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontFamily:C.fB,fontSize:11,color:C.ink}}>✓</div>
+            <div>
+              <div style={{fontFamily:C.fD,fontSize:13,fontWeight:600,color:C.ink}}>{s.label}</div>
+              <div style={{fontFamily:C.fB,fontSize:11,color:C.muted,marginTop:1}}>{s.sub}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Cap op={capO} bottom={sumO>0.1?120:14}>Moves buyer interest toward a real appointment.</Cap>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// S7 — System Summary  (24.5–28s)
+// ══════════════════════════════════════════════════════════════════
+function S7({t}){
+  const lt=t-24.5;
+  const lOp=ip(0,1,pg(lt,.1,.3));
+  const stO=[0,1,2,3,4].map(i=>ip(0,1,pg(lt,.25+i*.11,.28)));
+  // Connector lines between steps
+  const connW=[0,1,2,3].map(i=>ip(0,100,pg(lt,.48+i*.11,.28),E.oE));
+  const hO=ip(0,1,pg(lt,.9,.38));
+  const h1y=ip(16,0,pg(lt,.9,.38),E.o3);
+  const h2y=ip(16,0,pg(lt,1.1,.38),E.o3);
+  const ctaO=ip(0,1,pg(lt,1.5,.38));
+  const ruleW=ip(0,100,pg(lt,1.8,.45),E.oE);
+  const noteO=ip(0,1,pg(lt,1.65,.35));
+
+  return(
+    <div style={{position:'absolute',inset:0,background:C.bg}}>
+      <Grid/><Grain/><Vig s={.3}/>
+      <Logo op={lOp}/>
+
+      <div style={{position:'absolute',top:'50%',left:72,right:72,transform:'translateY(-50%)'}}>
+        {/* Pipeline with connectors */}
+        <div style={{position:'relative',marginBottom:52}}>
+          <div style={{display:'flex',gap:0}}>
+            {[
+              {n:'01',name:'Property Page',tag:'ATTRACT'},
+              {n:'02',name:'Inquiry',tag:'CAPTURE'},
+              {n:'03',name:'Response',tag:'REPLY'},
+              {n:'04',name:'Booking',tag:'SCHEDULE'},
+              {n:'05',name:'Viewing',tag:'CONVERT'},
+            ].map((s,i)=>(
+              <div key={i} style={{flex:1,padding:'24px 20px',border:`1px solid ${C.border}`,borderRight:i<4?'none':`1px solid ${C.border}`,background:C.bg,opacity:stO[i],position:'relative'}}>
+                <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:C.gold,marginBottom:10}}>{s.n}</div>
+                <div style={{fontFamily:C.fD,fontSize:20,fontWeight:700,letterSpacing:'-.02em',color:C.ink,marginBottom:6}}>{s.name}</div>
+                <div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:C.muted}}>{s.tag}</div>
+                {/* Green bottom accent on active */}
+                <div style={{position:'absolute',bottom:0,left:0,right:0,height:2,background:C.green,opacity:stO[i]}}/>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Headlines */}
+        <div style={{opacity:hO}}>
+          <div style={{fontFamily:C.fD,fontSize:54,fontWeight:700,letterSpacing:'-.03em',lineHeight:1.0,color:C.ink,transform:`translateY(${h1y}px)`}}>The website is the surface.</div>
+          <div style={{fontFamily:C.fD,fontSize:54,fontWeight:700,letterSpacing:'-.03em',lineHeight:1.0,color:C.muted,transform:`translateY(${h2y}px)`}}>The system is the engine.</div>
+        </div>
+
+        {/* Note line */}
+        <div style={{fontFamily:C.fB,fontSize:15,color:'rgba(168,168,168,.55)',marginTop:20,marginBottom:24,opacity:noteO}}>
+          See the full property conversion flow.
+        </div>
+
+        {/* CTAs */}
+        <div style={{display:'flex',gap:12,opacity:ctaO}}>
+          <button style={{padding:'14px 32px',background:C.green,color:C.ink,fontFamily:C.fD,fontSize:13,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',border:'none',boxShadow:'0 0 22px rgba(31,61,43,.42)',cursor:'pointer'}}>View Full Demo</button>
+          <button style={{padding:'14px 32px',background:'transparent',color:C.ink,fontFamily:C.fD,fontSize:13,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',border:'1px solid rgba(244,244,242,.2)',cursor:'pointer'}}>Book Strategy Call</button>
+        </div>
+        <div style={{width:`${ruleW}%`,height:1,background:C.muted,opacity:.15,marginTop:40}}/>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// S8 — Final CTA  (28–32s)
+// ══════════════════════════════════════════════════════════════════
+function S8({t}){
+  const lt=t-28;
+  const lOp=ip(0,1,pg(lt,.1,.38));
+  const eO=ip(0,1,pg(lt,.22,.38)),eY=ip(9,0,pg(lt,.22,.38));
+  const h1y=ip(30,0,pg(lt,.38,.42),E.oE),h1o=ip(0,1,pg(lt,.38,.42));
+  const h2y=ip(30,0,pg(lt,.58,.42),E.oE),h2o=ip(0,1,pg(lt,.58,.42));
+  const subO=ip(0,1,pg(lt,.9,.38)),subY=ip(10,0,pg(lt,.9,.38));
+  const dW=ip(0,520,pg(lt,1.0,.48),E.oE);
+  const ctaO=ip(0,1,pg(lt,1.2,.38));
+  const mkO=ip(0,1,pg(lt,.75,.65));
+  const drift=ip(0,-6,pg(lt,.38,3.6),E.si);
+
+  return(
+    <div style={{position:'absolute',inset:0,background:C.bg}}>
+      <Grid/><Grain/><Vig s={.42}/>
+      <div style={{position:'absolute',left:72,top:0,bottom:0,width:1,background:`linear-gradient(to bottom,transparent,rgba(168,168,168,.1) 25%,rgba(168,168,168,.1) 75%,transparent)`}}/>
+      <Logo op={lOp}/>
+
+      <div style={{position:'absolute',top:'50%',left:120,transform:'translateY(-50%)',maxWidth:900}}>
+        <div style={{fontFamily:C.fB,fontSize:12,fontWeight:600,letterSpacing:'.2em',textTransform:'uppercase',color:C.gold,marginBottom:26,opacity:eO,transform:`translateY(${eY}px)`}}>
+          BINAAN CO · PROPERTY CONVERSION SYSTEM
+        </div>
+        <div style={{fontFamily:C.fD,fontSize:78,fontWeight:700,letterSpacing:'-.035em',lineHeight:.96,color:C.ink,transform:`translateY(${drift+h1y}px)`,opacity:h1o}}>
+          Turn property traffic
+        </div>
+        <div style={{fontFamily:C.fD,fontSize:78,fontWeight:700,letterSpacing:'-.035em',lineHeight:.96,color:C.ink,transform:`translateY(${drift+h2y}px)`,opacity:h2o,marginBottom:32}}>
+          into booked viewings.
+        </div>
+        <div style={{fontFamily:C.fB,fontSize:19,fontWeight:400,color:C.muted,lineHeight:1.6,maxWidth:620,marginBottom:32,opacity:subO,transform:`translateY(${subY}px)`}}>
+          Send us your current listing. We'll show you where the conversion flow breaks.
+        </div>
+        <div style={{width:dW,height:1,background:C.muted,opacity:.2,marginBottom:32}}/>
+        <div style={{display:'flex',gap:14,opacity:ctaO}}>
+          <button style={{padding:'16px 44px',background:C.green,color:C.ink,fontFamily:C.fD,fontSize:14,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',border:'none',boxShadow:'0 0 28px rgba(31,61,43,.5)',cursor:'pointer'}}>Book Strategy Call</button>
+          <button style={{padding:'16px 40px',background:'transparent',color:C.ink,fontFamily:C.fD,fontSize:14,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',border:'1px solid rgba(244,244,242,.2)',cursor:'pointer'}}>View Demo Experience</button>
+        </div>
+      </div>
+
+      {/* Corner bracket watermark */}
+      <div style={{position:'absolute',right:80,top:'50%',transform:'translateY(-50%)',opacity:mkO*.07}}>
+        <svg width="230" height="230" viewBox="0 0 64 64" fill="none">
+          <path d="M12 12L12 30M12 12L30 12" stroke={C.ink} strokeWidth="1.5" strokeLinecap="square"/>
+          <path d="M52 52L52 34M52 52L34 52" stroke={C.ink} strokeWidth="1.5" strokeLinecap="square"/>
+        </svg>
+      </div>
+
+      <div style={{position:'absolute',right:80,bottom:28,fontFamily:C.fD,fontSize:220,fontWeight:700,color:'rgba(244,244,242,.022)',letterSpacing:'-.05em',lineHeight:1,userSelect:'none',opacity:h2o}}>08</div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════
+// Engine
+// ══════════════════════════════════════════════════════════════════
+const DUR=32;
+const SCENES=[
+  {C:S1,start:0,   end:4  },
+  {C:S2,start:4,   end:8  },
+  {C:S3,start:8,   end:12.5},
+  {C:S4,start:12.5,end:16.5},
+  {C:S5,start:16.5,end:20.5},
+  {C:S6,start:20.5,end:24.5},
+  {C:S7,start:24.5,end:28  },
+  {C:S8,start:28,  end:32  },
+];
+const FD=0.45;
+
+function sOp(t,s,e){
+  if(t<s-FD/2||t>e+FD/2) return 0;
+  if(t<s+FD/2) return ip(0,1,pg(t,s-FD/2,FD));
+  if(t>e-FD/2) return ip(1,0,pg(t,e-FD/2,FD));
+  return 1;
+}
+
+// Global time
+const TL=new Set();
+let GT=(()=>{const s=parseFloat(localStorage.getItem('b3t')||'0');return isNaN(s)?0:Math.min(s,DUR);})();
+let GP=false,_r=null,_l=null;
+function sGT(v){GT=Math.max(0,Math.min(DUR,v));localStorage.setItem('b3t',GT);TL.forEach(f=>f(GT));}
+function sGP(v){
+  GP=v;
+  if(v){_l=performance.now();const tick=n=>{const d=(n-_l)/1000;_l=n;const nx=Math.min(GT+d,DUR);sGT(nx);if(nx<DUR&&GP)_r=requestAnimationFrame(tick);else{GP=false;TL.forEach(f=>f(GT));}}; _r=requestAnimationFrame(tick);}
+  else{if(_r)cancelAnimationFrame(_r);}
+  TL.forEach(f=>f(GT));
+}
+function useGT(){const[t,sT]=useState(GT);useEffect(()=>{TL.add(sT);return()=>TL.delete(sT);},[]);return t;}
+
+function Stage(){
+  const t=useGT();
+  return(
+    <div style={{position:'absolute',inset:0,background:C.bg,overflow:'hidden'}}>
+      {SCENES.map(({C:Comp,start,end},i)=>{
+        const op=sOp(t,start,end);
+        if(op<=.001)return null;
+        return <div key={i} style={{position:'absolute',inset:0,opacity:op}}><Comp t={t}/></div>;
+      })}
+    </div>
+  );
+}
+
+function Controls(){
+  const t=useGT();
+  const[pl,sPl]=useState(false);
+  useEffect(()=>{const s=()=>sPl(GP);TL.add(s);return()=>TL.delete(s);},[]);
+  useEffect(()=>{
+    const k=e=>{
+      if(e.target.tagName==='INPUT')return;
+      if(e.code==='Space'){e.preventDefault();if(t>=DUR){sGT(0);setTimeout(()=>sGP(true),50);}else sGP(!GP);}
+      if(e.code==='ArrowRight')sGT(GT+2);
+      if(e.code==='ArrowLeft')sGT(GT-2);
+      if(e.code==='Digit0'||e.code==='Numpad0'){sGT(0);sGP(false);}
+    };
+    window.addEventListener('keydown',k);
+    return()=>window.removeEventListener('keydown',k);
+  },[t]);
+
+  const fmt=s=>{const m=Math.floor(s/60);const sc=Math.floor(s%60).toString().padStart(2,'0');const d=Math.floor((s%1)*10);return`${m}:${sc}.${d}`;};
+  const names=['01 Opening','02 Property Page','03 Lead Capture','04 System Flow','05 Response','06 Booking','07 Summary','08 Final CTA'];
+  const idx=SCENES.findIndex(s=>t>=s.start&&t<s.end);
+
+  return(
+    <div style={{width:'100%',padding:'0 18px',background:'#111',display:'flex',alignItems:'center',gap:13,height:52,flexShrink:0,borderTop:'1px solid #1e1e1e'}}>
+      <button onClick={()=>{if(t>=DUR){sGT(0);setTimeout(()=>sGP(true),50);}else sGP(!GP);}} style={{width:34,height:34,background:'#1c1c1c',border:'1px solid #2a2a2a',color:C.ink,fontFamily:'monospace',fontSize:13,cursor:'pointer',flexShrink:0,display:'flex',alignItems:'center',justifyContent:'center',borderRadius:2}}>
+        {pl?'⏸':t>=DUR?'↺':'▶'}
+      </button>
+      <div style={{fontFamily:'monospace',fontSize:12,color:'#4a4a4a',flexShrink:0,width:56}}>{fmt(t)}</div>
+      <input type="range" min={0} max={DUR} step={0.05} value={t} onChange={e=>{sGP(false);sGT(parseFloat(e.target.value));}} onMouseDown={()=>sGP(false)} style={{flex:1,accentColor:C.green,cursor:'pointer'}}/>
+      <div style={{fontFamily:'monospace',fontSize:12,color:'#323232',flexShrink:0,width:56,textAlign:'right'}}>{fmt(DUR)}</div>
+      {idx>=0&&<div style={{fontFamily:C.fB,fontSize:11,fontWeight:600,letterSpacing:'.1em',textTransform:'uppercase',color:C.gold,flexShrink:0,minWidth:176}}>{names[idx]}</div>}
+      <div style={{fontFamily:C.fB,fontSize:10,color:'#2e2e2e',flexShrink:0}}>SPACE · ← → · 0</div>
+    </div>
+  );
+}
+
+function Root(){
+  const[scale,setScale]=useState(1);
+  const CH=52;
+  useEffect(()=>{
+    const u=()=>{const sw=window.innerWidth/1920;const sh=(window.innerHeight-CH)/1080;setScale(Math.min(sw,sh));};
+    u();window.addEventListener('resize',u);return()=>window.removeEventListener('resize',u);
+  },[]);
+  const W=Math.round(1920*scale),H=Math.round(1080*scale);
+  return(
+    <div style={{width:'100vw',height:'100vh',background:'#0a0a0a',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center'}}>
+      <div style={{position:'relative',width:W,height:H,overflow:'hidden',flexShrink:0}}>
+        <div style={{position:'absolute',top:0,left:0,width:1920,height:1080,transformOrigin:'top left',transform:`scale(${scale})`}}>
+          <Stage/>
+        </div>
+      </div>
+      <Controls/>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
+</script>
+</body>
+</html>

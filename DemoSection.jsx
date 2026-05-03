@@ -1,7 +1,4 @@
 ﻿const DemoSection = ({ onNavigate }) => {
-  const videoRef = React.useRef(null);
-  const [playing, setPlaying] = React.useState(false);
-  const [started, setStarted] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
 
   React.useEffect(() => {
@@ -38,13 +35,6 @@
     }, 3200);
     return () => clearInterval(interval);
   }, []);
-
-  const handlePlay = () => { if(videoRef.current){ videoRef.current.play(); setPlaying(true); setStarted(true); } };
-  const handleVideoClick = () => {
-    if(!videoRef.current) return;
-    if(videoRef.current.paused){ videoRef.current.play(); setPlaying(true); }
-    else { videoRef.current.pause(); setPlaying(false); }
-  };
 
   const steps = ['Property Page','Buyer Inquiry','Fast Response','Booking','Viewing Booked'];
 
@@ -117,47 +107,12 @@
             </div>
 
             <div style={{ position:'relative', width:'100%', paddingBottom:'56.25%', background:'#0A0A0A' }}>
-              <video ref={videoRef} onClick={handleVideoClick} onEnded={() => setPlaying(false)}
-                style={{ position:'absolute', inset:0, width:'100%', height:'100%',
-                  objectFit:'cover', cursor:'pointer' }}
-                src="uploads/Binaan Co Website Demo Video.mp4" />
-
-              {!started && (
-                <div onClick={handlePlay} style={{
-                  position:'absolute', inset:0, display:'flex', flexDirection:'column',
-                  alignItems:'center', justifyContent:'center',
-                  background:'rgba(8,8,8,0.75)', cursor:'pointer', zIndex:5, backdropFilter:'blur(6px)',
-                }}>
-                  <div style={{ width:72, height:72, borderRadius:'50%',
-                    background:'rgba(31,61,43,0.95)', display:'flex', alignItems:'center', justifyContent:'center',
-                    marginBottom:14, boxShadow:'0 0 50px rgba(31,61,43,0.5)' }}>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="#F4F4F2" style={{ marginLeft:3 }}>
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                  <div style={{ fontFamily:"'Space Grotesk', sans-serif", fontWeight:600,
-                    fontSize:13, color:'#F4F4F2', letterSpacing:'0.06em', textTransform:'uppercase',
-                    marginBottom:4 }}>Watch the Demo</div>
-                  <div style={{ fontFamily:"'Inter', sans-serif", fontSize:11, color:'rgba(168,168,168,0.6)' }}>
-                    Full conversion journey — 3 min
-                  </div>
-                </div>
-              )}
-
-              {started && !playing && (
-                <div onClick={handleVideoClick} style={{
-                  position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center',
-                  background:'rgba(0,0,0,0.45)', cursor:'pointer', zIndex:5,
-                }}>
-                  <div style={{ width:56, height:56, borderRadius:'50%',
-                    background:'rgba(31,61,43,0.92)', display:'flex', alignItems:'center', justifyContent:'center',
-                    boxShadow:'0 0 28px rgba(31,61,43,0.5)' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="#F4F4F2" style={{ marginLeft:2 }}>
-                      <path d="M8 5v14l11-7z"/>
-                    </svg>
-                  </div>
-                </div>
-              )}
+              <iframe
+                src="demo.html"
+                title="Binaan Co — Interactive Demo Experience"
+                style={{ position:'absolute', inset:0, width:'100%', height:'100%', border:'none' }}
+                allow="autoplay"
+              />
             </div>
 
             <div style={{
