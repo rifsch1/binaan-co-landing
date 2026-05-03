@@ -1,4 +1,4 @@
-// Hero.jsx — Binaan Landing Page v2
+﻿// Hero.jsx — Binaan Landing Page v2
 // Cinematic video hero + staggered word reveal + animated stats
 
 const Hero = ({ onNavigate }) => {
@@ -153,9 +153,9 @@ const Hero = ({ onNavigate }) => {
 
           {/* Animated word-by-word headline */}
           <h1 style={{
-            fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
-            fontSize: 'clamp(38px, 5vw, 76px)', color: '#F4F4F2',
-            letterSpacing: '-0.03em', lineHeight: 1.0,
+            fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600,
+            fontSize: 'clamp(26px, 2.8vw, 44px)', color: '#F4F4F2',
+            letterSpacing: '-0.025em', lineHeight: 1.1,
             marginBottom: 20,
             display: 'flex', flexWrap: 'wrap', gap: '0.22em',
           }}>
@@ -171,7 +171,7 @@ const Hero = ({ onNavigate }) => {
 
           {/* Sub */}
           <p style={{
-            fontFamily: "'Inter', sans-serif", fontSize: 'clamp(15px, 1.2vw, 18px)',
+            fontFamily: "'Inter', sans-serif", fontSize: 'clamp(13px, 0.9vw, 15px)',
             fontWeight: 400, color: 'rgba(244,244,242,0.65)', lineHeight: 1.7,
             maxWidth: 480, marginBottom: 32,
             opacity: headlineVisible ? 1 : 0,
@@ -294,7 +294,7 @@ const AnimatedStat = ({ stat, index, visible }) => {
     }}>
       <div style={{
         fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
-        fontSize: 'clamp(24px, 2.8vw, 38px)',
+        fontSize: 'clamp(18px, 1.8vw, 26px)',
         color: '#F4F4F2', letterSpacing: '-0.02em', lineHeight: 1,
         marginBottom: 7,
       }}>
