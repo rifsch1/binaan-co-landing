@@ -1,4 +1,4 @@
-﻿const OfferSection = () => {
+const OfferSection = () => {
   const videoRef = React.useRef(null);
   const [videoLoaded, setVideoLoaded] = React.useState(false);
   const [hoveredCol, setHoveredCol] = React.useState(null);
@@ -23,9 +23,21 @@
   }, []);
 
   const columns = [
-    { label:'Website Layer', items:['Premium property landing page','Mobile-responsive layout','Property gallery','Floor plan section','Strong CTA structure'] },
-    { label:'System Layer', items:['Inquiry capture form','Agent lead notification','Booking request flow','Automated follow-up logic','Basic lead tracking'] },
-    { label:'Conversion Layer', items:['CTA placement','Copy structure','Lead qualification questions','Viewing-focused user flow','Conversion-first structure'] },
+    {
+      label:'Website Layer',
+      items:['Premium property landing page','Mobile-responsive layout','Property gallery','Floor plan section','Strong CTA structure'],
+      included:['Custom domain setup','Hosting & SSL included','Space Grotesk brand typography','Retina-ready image handling','WhatsApp click-to-chat button'],
+    },
+    {
+      label:'System Layer',
+      items:['Inquiry capture form','Agent lead notification','Booking request flow','Automated follow-up logic','Basic lead tracking'],
+      included:['WhatsApp auto-reply integration','Email + SMS agent alert','Lead data export (CSV)','Booking calendar link','Viewing confirmation message'],
+    },
+    {
+      label:'Conversion Layer',
+      items:['CTA placement','Copy structure','Lead qualification questions','Viewing-focused user flow','Conversion-first structure'],
+      included:['Urgency & social proof elements','Buyer intent scoring logic','A/B headline variants','Friction-reduced form design','Above-the-fold CTA audit'],
+    },
   ];
 
   return (
@@ -81,14 +93,14 @@
                   borderTop,
                   transform: isHov && !isMobile ? 'translateY(-4px)' : 'none',
                   boxShadow: isHov && !isMobile
-                    ? (i===1 ? '0 0 36px rgba(31,61,43,0.35)' : '0 0 20px rgba(31,61,43,0.18)')
+                    ? (i===1 ? '0 0 36px rgba(31,61,43,0.35)' : '0 8px 32px rgba(0,0,0,0.3), 0 0 20px rgba(31,61,43,0.15)')
                     : 'none',
                   transition:'all 220ms cubic-bezier(0.4,0,0.2,1)',
                 }}>
                 <div style={{ fontFamily:"'Inter', sans-serif", fontSize:10, fontWeight:600,
                   letterSpacing:'0.12em', textTransform:'uppercase',
                   color: i===1 ? '#8C7A5B' : '#666', marginBottom:20 }}>{col.label}</div>
-                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                <div style={{ display:'flex', flexDirection:'column', gap:12, marginBottom:16 }}>
                   {col.items.map((item, j) => (
                     <div key={j} style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
                       <svg width="12" height="12" viewBox="0 0 16 16" fill="none" style={{ flexShrink:0, marginTop:2 }}>
@@ -98,6 +110,32 @@
                     </div>
                   ))}
                 </div>
+
+                {/* Expandable "What's included" */}
+                {!isMobile && (
+                  <div style={{
+                    borderTop:'1px solid rgba(168,168,168,0.1)',
+                    paddingTop: isHov ? 14 : 0,
+                    maxHeight: isHov ? 220 : 0,
+                    overflow:'hidden',
+                    opacity: isHov ? 1 : 0,
+                    transition:'max-height 200ms ease, opacity 180ms ease, padding-top 200ms ease',
+                  }}>
+                    <div style={{ fontFamily:"'Inter', sans-serif", fontSize:10, fontWeight:600,
+                      letterSpacing:'0.12em', textTransform:'uppercase',
+                      color:'rgba(31,61,43,0.7)', marginBottom:10 }}>What's included</div>
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      {col.included.map((item, j) => (
+                        <div key={j} style={{ display:'flex', alignItems:'flex-start', gap:8 }}>
+                          <div style={{ width:3, height:3, borderRadius:'50%', background:'#1F3D2B',
+                            flexShrink:0, marginTop:6 }} />
+                          <span style={{ fontFamily:"'Inter', sans-serif", fontSize:12,
+                            color:'rgba(168,168,168,0.7)', lineHeight:1.5 }}>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })}
