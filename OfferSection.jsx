@@ -141,7 +141,7 @@ const OfferSection = () => {
           })}
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:16, flexWrap:'wrap' }}>
-          <button style={{
+          <button onClick={() => window.open('https://wa.me/601172250309?text=Hey%20I%20just%20saw%20your%20property%20system%20demo.%20Curious%20how%20this%20would%20work%20for%20one%20of%20my%20listings.', '_blank', 'noopener,noreferrer')} style={{
             background:'#1F3D2B', color:'#F4F4F2', border:'none',
             fontFamily:"'Space Grotesk', sans-serif", fontWeight:600,
             fontSize:11, letterSpacing:'0.06em', textTransform:'uppercase',
@@ -151,7 +151,7 @@ const OfferSection = () => {
           }}
           onMouseEnter={e => { e.currentTarget.style.background='#244A34'; }}
           onMouseLeave={e => { e.currentTarget.style.background='#1F3D2B'; }}
-          >Book Strategy Call</button>
+          >Message on WhatsApp</button>
           {!isMobile && (
             <span style={{ fontFamily:"'Inter', sans-serif", fontSize:13, color:'#555' }}>
               One call. We audit your setup and show you exactly where the gap is.

@@ -194,7 +194,7 @@
                   fontSize:15, color:'#F4F4F2', marginBottom:6 }}>Ready to see yours?</div>
                 <div style={{ fontFamily:"'Inter', sans-serif", fontSize:12, color:'rgba(244,244,242,0.65)',
                   lineHeight:1.6, marginBottom:14 }}>Book a strategy call. We'll audit your setup.</div>
-                <button onClick={() => onNavigate('contact')} style={{
+                <button onClick={() => window.open('https://wa.me/601172250309?text=Hey%20I%20just%20saw%20your%20property%20system%20demo.%20Curious%20how%20this%20would%20work%20for%20one%20of%20my%20listings.', '_blank', 'noopener,noreferrer')} style={{
                   width:'100%', background:'#F4F4F2', color:'#1A1A1A', border:'none',
                   fontFamily:"'Space Grotesk', sans-serif", fontWeight:700,
                   fontSize:10, letterSpacing:'0.08em', textTransform:'uppercase',
@@ -202,7 +202,7 @@
                 }}
                 onMouseEnter={e => { e.currentTarget.style.background='#FFFFFF'; }}
                 onMouseLeave={e => { e.currentTarget.style.background='#F4F4F2'; }}
-                >Book Strategy Call</button>
+                >Message on WhatsApp</button>
               </div>
             </div>
           )}
