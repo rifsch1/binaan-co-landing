@@ -1,4 +1,4 @@
-﻿const Hero = ({ onNavigate }) => {
+const Hero = ({ onNavigate }) => {
   const videoRef = React.useRef(null);
   const overlayTopRef = React.useRef(null);
   const overlayLeftRef = React.useRef(null);
@@ -78,16 +78,15 @@
   const words = ['Property', 'systems', 'that', 'turn', 'interest', 'into', 'booked', 'viewings.'];
 
   const stats = [
-    { value: 68, suffix: '%', label: 'Viewing Conversion' },
-    { value: 2, prefix: '< ', suffix: 'm', label: 'Lead Response' },
-    { value: 3, suffix: '×', label: 'More Inquiries' },
-    { value: 24, suffix: '/7', label: 'Always On' },
+    { value: 68, suffix: '%', label: 'Leads Booked Into Viewings' },
+    { value: 2, prefix: '< ', suffix: 'm', label: 'Avg Lead Response Time' },
+    { value: 3, suffix: '×', label: 'More Qualified Viewings' },
   ];
 
   return (
     <section id="hero" style={{
       position: 'relative', width: '100%',
-      height: '100vh', minHeight: isMobile ? 600 : 700,
+      height: isMobile ? 'auto' : '100vh', minHeight: isMobile ? 'auto' : 700,
       display: 'flex', flexDirection: 'column',
       background: '#0D0D0D',
     }}>
@@ -132,12 +131,16 @@
 
       <div style={{
         position:'relative', zIndex:10,
-        flex:1, display:'flex', alignItems:'center',
+        flex:1, display:'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'flex-start' : 'center',
+        justifyContent:'space-between',
         maxWidth:1280, margin:'0 auto', width:'100%',
-        padding: isMobile ? '72px 22px 24px' : '88px 64px 32px',
+        padding: isMobile ? '72px 22px 28px' : '88px 64px 32px',
         minHeight:0,
+        gap: isMobile ? 28 : 40,
       }}>
-        <div style={{ maxWidth: isMobile ? '100%' : 640 }}>
+        <div style={{ maxWidth: isMobile ? '100%' : 520, width: isMobile ? '100%' : 'auto', flexShrink: 0 }}>
 
           <div style={{
             display:'flex', alignItems:'center', gap:10, marginBottom: isMobile ? 20 : 28,
@@ -221,6 +224,9 @@
             }}>Built for property agents in Malaysia &amp; Singapore.</p>
           )}
         </div>
+
+        {/* Floating automation card */}
+        <AutomationCard isMobile={isMobile} visible={headlineVisible} />
       </div>
 
       <div style={{ position:'relative', zIndex:10, width:'100%', padding: isMobile ? '0 22px' : '0 64px' }}>
@@ -228,7 +234,7 @@
           maxWidth:1280, margin:'0 auto',
           borderTop:'1px solid rgba(244,244,242,0.08)',
           display:'grid',
-          gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)',
+          gridTemplateColumns: 'repeat(3, 1fr)',
           gap: isMobile ? '16px 12px' : 0,
           paddingTop:20, paddingBottom: isMobile ? 24 : 28,
         }}>
@@ -246,6 +252,10 @@
         @keyframes ctaPulse {
           0%, 100% { box-shadow: 0 0 20px rgba(31,61,43,0.5); }
           50% { box-shadow: 0 0 38px rgba(31,61,43,0.9), 0 0 64px rgba(31,61,43,0.3); }
+        }
+        @keyframes heroFloat {
+          0%, 100% { transform: translateY(-4px); }
+          50% { transform: translateY(4px); }
         }
         .pulse-idle { animation: ctaPulse 2.5s ease-in-out infinite; }
       `}</style>
@@ -275,7 +285,7 @@ const AnimatedStat = ({ stat, index, visible, isMobile }) => {
     requestAnimationFrame(tick);
   }, [visible]);
 
-  const isFirstInRow = isMobile ? (index % 2 === 0) : (index === 0);
+  const isFirstInRow = (index === 0);
 
   return (
     <div style={{
@@ -300,4 +310,72 @@ const AnimatedStat = ({ stat, index, visible, isMobile }) => {
   );
 };
 
-Object.assign(window, { Hero, AnimatedStat });
+
+const AutomationCard = ({ isMobile, visible }) => {
+  const steps = [
+    { label: 'New lead captured', sub: 'Website enquiry received', time: '10:24 AM' },
+    { label: 'WhatsApp follow-up sent', sub: 'Automated reply sent in 42s', time: '10:25 AM' },
+    { label: 'Viewing booked', sub: 'Saturday, 11:00 AM', time: '10:28 AM' },
+  ];
+  const icons = ['↗', '⚡', '✓'];
+  return (
+    <div style={{
+      opacity: visible ? 1 : 0,
+      transition: 'opacity 0.9s ease 1s',
+      animation: 'heroFloat 5.5s ease-in-out infinite',
+      flexShrink: 0,
+      width: isMobile ? '100%' : 290,
+      maxWidth: isMobile ? 400 : 290,
+    }}>
+      <div style={{
+        background: 'rgba(18,18,18,0.85)',
+        backdropFilter: 'blur(24px)',
+        WebkitBackdropFilter: 'blur(24px)',
+        border: '1px solid rgba(255,255,255,0.08)',
+        borderRadius: 16,
+        padding: '22px 22px 18px',
+        boxShadow: '0 24px 64px rgba(0,0,0,0.45)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}>
+        <div style={{ position:'absolute', top:0, left:0, right:0, height:1,
+          background:'linear-gradient(90deg, transparent, rgba(31,61,43,0.6), transparent)' }} />
+        <div style={{ position:'relative' }}>
+          <div style={{ position:'absolute', left:10, top:22, height:'calc(100% - 22px)', width:1,
+            background:'linear-gradient(to bottom, rgba(31,61,43,0.8), rgba(31,61,43,0.1))', pointerEvents:'none' }} />
+          {steps.map((step, i) => (
+            <div key={i} style={{ display:'flex', alignItems:'flex-start', gap:12,
+              marginBottom: i < steps.length - 1 ? 18 : 0, position:'relative' }}>
+              <div style={{ width:21, height:21, borderRadius:'50%',
+                background: i === 0 ? '#1F3D2B' : 'rgba(31,61,43,0.2)',
+                border: i === 0 ? '1px solid rgba(31,61,43,0.9)' : '1px solid rgba(31,61,43,0.35)',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                flexShrink:0, marginTop:1, zIndex:1 }}>
+                <span style={{ fontSize:8, color:'#F4F4F2', fontFamily:"'Inter', sans-serif", lineHeight:1 }}>
+                  {icons[i]}
+                </span>
+              </div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontFamily:"'Space Grotesk', sans-serif", fontSize:12, fontWeight:600,
+                  color:'#F4F4F2', letterSpacing:'-0.01em', lineHeight:1.3, marginBottom:2 }}>{step.label}</div>
+                <div style={{ fontFamily:"'Inter', sans-serif", fontSize:10,
+                  color:'rgba(168,168,168,0.75)', lineHeight:1.4 }}>{step.sub}</div>
+              </div>
+              <div style={{ fontFamily:"'Inter', sans-serif", fontSize:9,
+                color:'rgba(168,168,168,0.45)', letterSpacing:'0.03em', flexShrink:0, marginTop:2 }}>{step.time}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop:18, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.05)',
+          display:'flex', alignItems:'center', gap:8 }}>
+          <div style={{ width:6, height:6, borderRadius:'50%', background:'#1F3D2B',
+            boxShadow:'0 0 8px rgba(31,61,43,0.9)', animation:'pulse 2s ease-in-out infinite', flexShrink:0 }} />
+          <span style={{ fontFamily:"'Inter', sans-serif", fontSize:10,
+            color:'rgba(168,168,168,0.65)', letterSpacing:'0.04em' }}>System working for you 24/7</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+Object.assign(window, { Hero, AnimatedStat, AutomationCard });

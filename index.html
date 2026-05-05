@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -90,6 +90,43 @@
     [data-animate='fade-right']{ transform: translateX(-20px); }
     [data-animate='scale-in']  { transform: scale(0.97); }
     [data-animate].in-view     { opacity: 1; transform: none; }
+
+    /* -- Intro overlay -- */
+    #binaan-intro {
+      position: fixed;
+      inset: 0;
+      background: #1A1A1A;
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.45s ease;
+    }
+    #binaan-intro.fading {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #intro-text {
+      font-family: 'Space Grotesk', 'Inter', monospace;
+      font-size: clamp(12px, 1.6vw, 17px);
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      color: #F4F4F2;
+    }
+    #intro-cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.1em;
+      background: #1F3D2B;
+      vertical-align: middle;
+      margin-left: 3px;
+      box-shadow: 0 0 6px rgba(31,61,43,0.7);
+      animation: introBlink 0.7s ease-in-out infinite;
+    }
+    @keyframes introBlink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0; }
+    }
   </style>
 
   <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
@@ -113,9 +150,56 @@
   <script type="text/babel" src="Footer.jsx"></script>
 </head>
 <body>
+  <!-- Intro overlay -->
+  <div id="binaan-intro" aria-hidden="true">
+    <span id="intro-text"></span><span id="intro-cursor" aria-hidden="true"></span>
+  </div>
+
   <!-- Scroll progress bar -->
   <div id="scroll-progress"></div>
   <div id="root"></div>
+
+  <script>
+    /* Intro animation - runs once per browser session */
+    (function () {
+      var intro = document.getElementById('binaan-intro');
+      if (!intro) return;
+      if (localStorage.getItem('binaan-intro-done')) {
+        intro.style.display = 'none';
+        return;
+      }
+      var chars = Array.from('BINAAN SYSTEM INITIALISING...🌱🪨');
+      var el    = document.getElementById('intro-text');
+      var cur   = document.getElementById('intro-cursor');
+      var i = 0, displayed = [];
+      var root = document.getElementById('root');
+      if (root) { root.style.filter = 'blur(6px)'; root.style.transition = 'filter 0.55s ease'; }
+      var flicker = setInterval(function () {
+        intro.style.opacity = (0.9 + Math.random() * 0.1).toFixed(2);
+      }, 140);
+      function typeChar() {
+        if (i >= chars.length) {
+          clearInterval(flicker);
+          intro.style.opacity = '1';
+          setTimeout(function () {
+            cur.style.animation = 'none';
+            cur.style.opacity   = '0';
+            intro.classList.add('fading');
+            if (root) root.style.filter = 'none';
+            setTimeout(function () {
+              intro.style.display = 'none';
+              localStorage.setItem('binaan-intro-done', '1');
+            }, 480);
+          }, 820);
+          return;
+        }
+        displayed.push(chars[i++]);
+        el.textContent = displayed.join('');
+        setTimeout(typeChar, 28 + Math.random() * 32);
+      }
+      setTimeout(typeChar, 120);
+    })();
+  </script>
 
   <script>
     // Scroll progress bar
