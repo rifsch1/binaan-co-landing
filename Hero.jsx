@@ -75,7 +75,7 @@
     };
   }, [isMobile]);
 
-  const words = ['Property', 'websites', 'that', 'turn', 'interest', 'into', 'booked', 'viewings.'];
+  const words = ['Property', 'systems', 'that', 'turn', 'interest', 'into', 'booked', 'viewings.'];
 
   const stats = [
     { value: 68, suffix: '%', label: 'Viewing Conversion' },
