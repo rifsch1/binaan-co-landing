@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BinAI Lead Dashboard — Binaan Co.</title>
+  <link rel="icon" type="image/x-icon" href="/assets/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg:      #1A1A1A;
+      --surface: #202020;
+      --card:    #242424;
+      --border:  #2C2C2C;
+      --green:   #1F3D2B;
+      --green2:  #2A5038;
+      --text:    #F4F4F2;
+      --muted:   #888;
+      --hot:     #ef4444;
+      --warm:    #f59e0b;
+      --cold:    #3b82f6;
+    }
+    html, body { height: 100%; background: var(--bg); font-family: 'Inter', sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+
+    /* ── Login gate ── */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 24px;
+    }
+    .login-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 40px 36px; width: 100%; max-width: 380px;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    }
+    .login-logo {
+      width: 44px; height: 44px; background: var(--green); border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 700; margin-bottom: 20px;
+    }
+    .login-card h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    .login-card p  { font-size: 13px; color: var(--muted); margin-bottom: 28px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .field input {
+      width: 100%; padding: 11px 14px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font-size: 14px; font-family: 'Inter', sans-serif;
+      outline: none; transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: var(--green2); }
+    .login-btn {
+      width: 100%; padding: 12px; background: var(--green); border: none;
+      border-radius: 10px; color: var(--text); font-size: 14px; font-weight: 600;
+      cursor: pointer; margin-top: 8px; transition: background 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    .login-btn:hover { background: var(--green2); }
+    .login-error { color: #f87171; font-size: 13px; margin-top: 10px; display: none; }
+
+    /* ── Dashboard ── */
+    #dashboard { display: none; min-height: 100vh; }
+    .topbar {
+      border-bottom: 1px solid var(--border); padding: 14px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; background: var(--bg); z-index: 10;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .logo-chip { width: 32px; height: 32px; background: var(--green); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; }
+    .topbar-title { font-weight: 600; font-size: 15px; }
+    .topbar-sub   { font-size: 12px; color: var(--muted); }
+    .topbar-right { display: flex; align-items: center; gap: 10px; }
+    .badge-live { font-size: 11px; color: #4ade80; background: rgba(74,222,128,0.1); border: 1px solid rgba(74,222,128,0.2); padding: 4px 10px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
+    .dot-live { width: 6px; height: 6px; border-radius: 50%; background: #4ade80; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .btn-sm {
+      padding: 7px 14px; border-radius: 9px; font-size: 12px; font-weight: 500;
+      cursor: pointer; border: 1px solid var(--border); background: var(--card);
+      color: var(--muted); transition: all 0.15s; font-family: 'Inter', sans-serif;
+    }
+    .btn-sm:hover { color: var(--text); border-color: #3f3f3f; }
+    .btn-primary { background: var(--green); border-color: var(--green); color: var(--text); }
+    .btn-primary:hover { background: var(--green2); border-color: var(--green2); }
+    .btn-logout { color: #f87171; border-color: transparent; background: transparent; }
+    .btn-logout:hover { background: rgba(248,113,113,0.08); }
+
+    .main { padding: 28px; max-width: 1300px; margin: 0 auto; }
+    .section-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 14px; }
+
+    /* Stats */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 28px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+    .stat-label { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
+    .stat-value { font-size: 32px; font-weight: 700; }
+    .stat-hot  { color: var(--hot); }
+    .stat-warm { color: var(--warm); }
+    .stat-cold { color: var(--cold); }
+
+    /* Charts row */
+    .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px; }
+    .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+    .chart-title { font-size: 13px; font-weight: 500; color: #bbb; margin-bottom: 16px; }
+
+    /* Mini pie */
+    .pie-wrap { display: flex; align-items: center; gap: 24px; }
+    .pie-svg { flex-shrink: 0; }
+    .pie-legend { display: flex; flex-direction: column; gap: 10px; }
+    .legend-row { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legend-label { color: var(--muted); }
+    .legend-val { font-weight: 600; color: var(--text); margin-left: 4px; }
+
+    /* Bar chart */
+    .bar-list { display: flex; flex-direction: column; gap: 10px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-label { font-size: 11px; color: var(--muted); width: 110px; flex-shrink: 0; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .bar-track { flex: 1; background: #2a2a2a; border-radius: 4px; height: 20px; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--green); border-radius: 4px; transition: width 0.6s ease; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+    .bar-count { font-size: 11px; font-weight: 600; color: rgba(244,244,242,0.8); }
+
+    /* Comparison strip */
+    .compare-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 28px; }
+    .compare-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 14px; }
+    .compare-cell { background: #1e1e1e; border-radius: 10px; padding: 14px; }
+    .compare-metric { font-size: 11px; color: var(--muted); margin-bottom: 8px; }
+    .compare-ai   { font-size: 13px; font-weight: 600; color: #4ade80; }
+    .compare-trad { font-size: 11px; color: var(--hot); opacity: 0.7; margin-top: 3px; text-decoration: line-through; }
+
+    /* Lead table */
+    .table-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; }
+    .table-header { padding: 18px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+    .filter-row { display: flex; gap: 6px; }
+    .filter-btn { padding: 5px 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid transparent; background: transparent; color: var(--muted); transition: all 0.15s; font-family: 'Inter', sans-serif; }
+    .filter-btn.active-all  { background: #333; color: var(--text); }
+    .filter-btn.active-hot  { background: rgba(239,68,68,0.15);  color: var(--hot);  border-color: rgba(239,68,68,0.3); }
+    .filter-btn.active-warm { background: rgba(245,158,11,0.15); color: var(--warm); border-color: rgba(245,158,11,0.3); }
+    .filter-btn.active-cold { background: rgba(59,130,246,0.15); color: var(--cold); border-color: rgba(59,130,246,0.3); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th { padding: 11px 16px; text-align: left; color: var(--muted); font-weight: 500; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 1px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none; }
+    th:hover { color: var(--text); }
+    td { padding: 13px 16px; border-bottom: 1px solid rgba(44,44,44,0.6); vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.02); }
+    .cls-badge { padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+    .cls-Hot  { background: rgba(239,68,68,0.15);  color: var(--hot);  border: 1px solid rgba(239,68,68,0.25); }
+    .cls-Warm { background: rgba(245,158,11,0.15); color: var(--warm); border: 1px solid rgba(245,158,11,0.25); }
+    .cls-Cold { background: rgba(59,130,246,0.15); color: var(--cold); border: 1px solid rgba(59,130,246,0.25); }
+    .text-muted { color: var(--muted); }
+    .lead-name  { font-weight: 500; color: var(--text); font-size: 13px; }
+    .lead-email { color: var(--muted); font-size: 11px; margin-top: 2px; }
+    .score-val  { font-weight: 700; font-size: 14px; }
+    .empty-state { padding: 48px; text-align: center; color: var(--muted); font-size: 13px; }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    ::selection { background: rgba(31,61,43,0.35); }
+  </style>
+</head>
+<body>
+
+<!-- ── Login gate ── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">B</div>
+    <h1>BinAI Dashboard</h1>
+    <p>Lead intelligence for Binaan Co. — restricted access.</p>
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="Enter username" autocomplete="username" />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password"
+        onkeydown="if(event.key==='Enter') attemptLogin()" />
+    </div>
+    <button class="login-btn" onclick="attemptLogin()">Sign in</button>
+    <div class="login-error" id="login-error">Incorrect username or password.</div>
+  </div>
+</div>
+
+<!-- ── Dashboard ── -->
+<div id="dashboard">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="logo-chip">B</div>
+      <div>
+        <div class="topbar-title">BinAI Lead Dashboard</div>
+        <div class="topbar-sub">Binaan Co. · Live from Google Sheets</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div class="badge-live"><div class="dot-live"></div>Live</div>
+      <button class="btn-sm" onclick="refreshLeads()">↻ Refresh</button>
+      <button class="btn-sm btn-primary" onclick="exportCSV()">↓ Export CSV</button>
+      <button class="btn-sm btn-logout" onclick="logout()">Sign out</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- Stats -->
+    <div class="section-title">Overview</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-label">Total Leads</div><div class="stat-value" id="s-total">—</div></div>
+      <div class="stat-card"><div class="stat-label">Hot Leads</div><div class="stat-value stat-hot" id="s-hot">—</div></div>
+      <div class="stat-card"><div class="stat-label">Warm Leads</div><div class="stat-value stat-warm" id="s-warm">—</div></div>
+      <div class="stat-card"><div class="stat-label">Avg Score</div><div class="stat-value" id="s-avg">—</div></div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-row">
+      <!-- Donut / pie -->
+      <div class="chart-card">
+        <div class="chart-title">Classification Breakdown</div>
+        <div class="pie-wrap">
+          <svg class="pie-svg" width="110" height="110" viewBox="0 0 110 110" id="pie-svg">
+            <circle cx="55" cy="55" r="40" fill="#2a2a2a"/>
+            <text x="55" y="59" text-anchor="middle" fill="#f4f4f2" font-size="13" font-family="Inter" font-weight="700" id="pie-center-text">—</text>
+          </svg>
+          <div class="pie-legend" id="pie-legend"></div>
+        </div>
+      </div>
+      <!-- Bar chart by project type -->
+      <div class="chart-card">
+        <div class="chart-title">Project Type Distribution</div>
+        <div class="bar-list" id="bar-chart"></div>
+      </div>
+    </div>
+
+    <!-- Comparison -->
+    <div class="compare-card">
+      <div class="chart-title" style="margin-bottom:0">AI vs. Traditional Lead Qualification</div>
+      <div class="compare-grid">
+        <div class="compare-cell"><div class="compare-metric">Time per lead</div><div class="compare-ai">Under 30 seconds</div><div class="compare-trad">15–30 minutes (phone)</div></div>
+        <div class="compare-cell"><div class="compare-metric">Availability</div><div class="compare-ai">24 / 7 / 365</div><div class="compare-trad">Business hours only</div></div>
+        <div class="compare-cell"><div class="compare-metric">Scoring consistency</div><div class="compare-ai">100% consistent rubric</div><div class="compare-trad">Varies by staff member</div></div>
+        <div class="compare-cell"><div class="compare-metric">Cost per lead</div><div class="compare-ai">~BND 0 (free API tier)</div><div class="compare-trad">BND 20–50 staff time</div></div>
+        <div class="compare-cell"><div class="compare-metric">Follow-up draft</div><div class="compare-ai">Instant, personalised</div><div class="compare-trad">10+ min manual write</div></div>
+        <div class="compare-cell"><div class="compare-metric">Data capture</div><div class="compare-ai">Structured → Sheets</div><div class="compare-trad">Manual CRM entry</div></div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <div style="font-size:13px;font-weight:500;color:#bbb">All Leads <span id="lead-count-label" style="color:var(--muted);font-weight:400"></span></div>
+        <div class="filter-row">
+          <button class="filter-btn active-all" onclick="setFilter('All',this)">All</button>
+          <button class="filter-btn" onclick="setFilter('Hot',this)">Hot</button>
+          <button class="filter-btn" onclick="setFilter('Warm',this)">Warm</button>
+          <button class="filter-btn" onclick="setFilter('Cold',this)">Cold</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="sortBy('Timestamp')">Timestamp</th>
+              <th onclick="sortBy('Name')">Name</th>
+              <th onclick="sortBy('Project Type')">Project</th>
+              <th onclick="sortBy('Budget')">Budget</th>
+              <th onclick="sortBy('Location')">Location</th>
+              <th onclick="sortBy('Score')">Score ↕</th>
+              <th onclick="sortBy('Classification')">Class.</th>
+              <th>Next Action</th>
+            </tr>
+          </thead>
+          <tbody id="lead-tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="empty-state" style="display:none">No leads yet. Complete a chat conversation on binaan.co to see leads appear here.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Config ────────────────────────────────────────────────────────────────
+  // Paste your Google Apps Script URL here after deploying apps_script.js
+  const APPS_SCRIPT_URL = '';
+
+  // Credentials (password stored as SHA-256 hash)
+  const AUTH = {
+    username:     'rif',
+    passwordHash: '6bafd063c72da2439bbf5537a465e7efd00b771b9d34c79c81d3b3e81be001d3',
+  };
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+  async function sha256(str) {
+    const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+  }
+
+  async function attemptLogin() {
+    const u = document.getElementById('username').value.trim().toLowerCase();
+    const p = document.getElementById('password').value;
+    const hash = await sha256(p);
+    if (u === AUTH.username && hash === AUTH.passwordHash) {
+      sessionStorage.setItem('binai_auth', '1');
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      loadLeads();
+    } else {
+      const err = document.getElementById('login-error');
+      err.style.display = 'block';
+      setTimeout(() => { err.style.display = 'none'; }, 3000);
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('binai_auth');
+    location.reload();
+  }
+
+  // Auto-restore session
+  if (sessionStorage.getItem('binai_auth') === '1') {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+  }
+
+  // ── Data ──────────────────────────────────────────────────────────────────
+  let allLeads   = [];
+  let currentFilter = 'All';
+  let sortCol    = 'Timestamp';
+  let sortAsc    = false;
+
+  async function loadLeads() {
+    if (!APPS_SCRIPT_URL) {
+      renderTable([]);
+      renderStats([]);
+      return;
+    }
+    try {
+      const res   = await fetch(APPS_SCRIPT_URL + '?action=read');
+      const leads = await res.json();
+      allLeads = Array.isArray(leads) ? leads : [];
+      renderStats(allLeads);
+      renderPie(allLeads);
+      renderBar(allLeads);
+      renderTable(filtered());
+    } catch (e) {
+      console.warn('Dashboard fetch error:', e);
+    }
+  }
+
+  function refreshLeads() { loadLeads(); }
+
+  function filtered() {
+    if (currentFilter === 'All') return allLeads;
+    return allLeads.filter(l => l['Classification'] === currentFilter);
+  }
+
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.className = 'filter-btn';
+    });
+    btn.className = 'filter-btn active-' + f.toLowerCase();
+    renderTable(filtered());
+  }
+
+  function sortBy(col) {
+    if (sortCol === col) sortAsc = !sortAsc;
+    else { sortCol = col; sortAsc = false; }
+    renderTable(filtered());
+  }
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  function renderStats(leads) {
+    const hot  = leads.filter(l => l['Classification'] === 'Hot').length;
+    const warm = leads.filter(l => l['Classification'] === 'Warm').length;
+    const cold = leads.filter(l => l['Classification'] === 'Cold').length;
+    const avg  = leads.length
+      ? Math.round(leads.reduce((a, b) => a + Number(b['Score'] || 0), 0) / leads.length)
+      : 0;
+    document.getElementById('s-total').textContent = leads.length;
+    document.getElementById('s-hot').textContent   = hot;
+    document.getElementById('s-warm').textContent  = warm;
+    document.getElementById('s-avg').textContent   = leads.length ? avg + '/100' : '—';
+  }
+
+  // ── Pie ───────────────────────────────────────────────────────────────────
+  function renderPie(leads) {
+    const hot  = leads.filter(l => l['Classification'] === 'Hot').length;
+    const warm = leads.filter(l => l['Classification'] === 'Warm').length;
+    const cold = leads.filter(l => l['Classification'] === 'Cold').length;
+    const total = hot + warm + cold;
+
+    const svg  = document.getElementById('pie-svg');
+    const text = document.getElementById('pie-center-text');
+    text.textContent = total > 0 ? total + ' leads' : '—';
+
+    // Remove old arcs
+    svg.querySelectorAll('.arc').forEach(e => e.remove());
+
+    if (total === 0) return;
+
+    const cx = 55, cy = 55, r = 40;
+    const items = [
+      { val: hot,  color: '#ef4444' },
+      { val: warm, color: '#f59e0b' },
+      { val: cold, color: '#3b82f6' },
+    ];
+    let startAngle = -Math.PI / 2;
+    items.forEach(item => {
+      if (!item.val) return;
+      const angle = (item.val / total) * 2 * Math.PI;
+      const endAngle = startAngle + angle;
+      const large = angle > Math.PI ? 1 : 0;
+      const x1 = cx + r * Math.cos(startAngle);
+      const y1 = cy + r * Math.sin(startAngle);
+      const x2 = cx + r * Math.cos(endAngle);
+      const y2 = cy + r * Math.sin(endAngle);
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('class', 'arc');
+      path.setAttribute('d', `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`);
+      path.setAttribute('fill', item.color);
+      svg.appendChild(path);
+      startAngle = endAngle;
+    });
+
+    // Draw hole
+    const hole = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    hole.setAttribute('class', 'arc');
+    hole.setAttribute('cx', cx); hole.setAttribute('cy', cy); hole.setAttribute('r', 24);
+    hole.setAttribute('fill', '#242424');
+    svg.appendChild(hole);
+    svg.appendChild(text); // keep text on top
+
+    // Legend
+    const leg = document.getElementById('pie-legend');
+    leg.innerHTML = [
+      { label: 'Hot',  val: hot,  color: '#ef4444' },
+      { label: 'Warm', val: warm, color: '#f59e0b' },
+      { label: 'Cold', val: cold, color: '#3b82f6' },
+    ].map(d => `
+      <div class="legend-row">
+        <div class="legend-dot" style="background:${d.color}"></div>
+        <span class="legend-label">${d.label}</span>
+        <span class="legend-val">${d.val}</span>
+        <span class="text-muted" style="font-size:11px">(${total ? Math.round(d.val/total*100) : 0}%)</span>
+      </div>
+    `).join('');
+  }
+
+  // ── Bar ───────────────────────────────────────────────────────────────────
+  function renderBar(leads) {
+    const counts = {};
+    leads.forEach(l => {
+      const raw = (l['Project Type'] || 'Unknown').split(' ').slice(0, 4).join(' ');
+      const key = raw.length > 22 ? raw.slice(0, 20) + '…' : raw;
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    const sorted = Object.entries(counts).sort(([,a],[,b]) => b-a).slice(0, 6);
+    const max = sorted.length ? sorted[0][1] : 1;
+    document.getElementById('bar-chart').innerHTML = sorted.map(([name, count]) => `
+      <div class="bar-row">
+        <div class="bar-label" title="${name}">${name}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:${(count/max*100).toFixed(1)}%">
+            <span class="bar-count">${count}</span>
+          </div>
+        </div>
+      </div>
+    `).join('') || '<div style="color:var(--muted);font-size:12px">No data yet</div>';
+  }
+
+  // ── Table ─────────────────────────────────────────────────────────────────
+  function renderTable(leads) {
+    const label = document.getElementById('lead-count-label');
+    label.textContent = leads.length ? `— ${leads.length} ${currentFilter === 'All' ? 'total' : currentFilter.toLowerCase()}` : '';
+
+    const sorted = leads.slice().sort((a, b) => {
+      const av = a[sortCol] || '', bv = b[sortCol] || '';
+      if (sortCol === 'Score') return sortAsc ? Number(av) - Number(bv) : Number(bv) - Number(av);
+      return sortAsc ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+    });
+
+    const tbody = document.getElementById('lead-tbody');
+    const empty = document.getElementById('empty-state');
+
+    if (sorted.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    tbody.innerHTML = sorted.map(l => `
+      <tr>
+        <td class="text-muted" style="white-space:nowrap;font-size:11px">${l['Timestamp'] || '—'}</td>
+        <td>
+          <div class="lead-name">${l['Name'] || '—'}</div>
+          <div class="lead-email">${l['Email'] || ''}</div>
+        </td>
+        <td class="text-muted" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${l['Project Type'] || '—'}</td>
+        <td class="text-muted;white-space:nowrap">${l['Budget'] || '—'}</td>
+        <td class="text-muted">${l['Location'] || '—'}</td>
+        <td><span class="score-val">${l['Score'] || '—'}</span></td>
+        <td><span class="cls-badge cls-${l['Classification']}">${l['Classification'] || '—'}</span></td>
+        <td class="text-muted" style="max-width:180px;font-size:11px">${l['Recommended Action'] || '—'}</td>
+      </tr>
+    `).join('');
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────
+  function exportCSV() {
+    if (!allLeads.length) return;
+    const headers = Object.keys(allLeads[0]);
+    const rows = allLeads.map(l => headers.map(h => `"${String(l[h]||'').replace(/"/g,'""')}"`).join(','));
+    const blob = new Blob([[headers.join(','), ...rows].join('\n')], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `binaan_leads_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  }
+
+  // Auto-load if already authenticated
+  if (sessionStorage.getItem('binai_auth') === '1') loadLeads();
+</script>
+
+</body>
+</html>
