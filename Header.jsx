@@ -75,17 +75,6 @@ const Header = ({ onNavigate }) => {
               onMouseLeave={e => e.currentTarget.style.color='#A8A8A8'}
               >{label}</button>
             ))}
-            <button onClick={() => onNavigate('demo')} style={{
-              background: 'transparent', color: '#F4F4F2',
-              border: '1px solid rgba(168,168,168,0.5)',
-              fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600,
-              fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
-              padding: '8px 16px', borderRadius: 3, cursor: 'pointer',
-              transition: 'all 180ms cubic-bezier(0.4,0,0.2,1)',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor='#F4F4F2'; e.currentTarget.style.transform='translateY(-1px)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(168,168,168,0.5)'; e.currentTarget.style.transform='none'; }}
-            >View Demo</button>
             <button onClick={() => onNavigate('contact')} style={{
               background: '#1F3D2B', color: '#F4F4F2', border: 'none',
               fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600,
