@@ -172,14 +172,11 @@
   <div id="chat-root"></div>
 
   <script>
-    /* Intro animation - runs once per browser session */
+    /* Intro animation - plays on every page load */
     (function () {
       var intro = document.getElementById('binaan-intro');
       if (!intro) return;
-      if (localStorage.getItem('binaan-intro-done')) {
-        intro.style.display = 'none';
-        return;
-      }
+      localStorage.removeItem('binaan-intro-done');
       var chars = Array.from('BINAAN SYSTEM INITIALISING...🌱🪨');
       var el    = document.getElementById('intro-text');
       var cur   = document.getElementById('intro-cursor');
@@ -200,7 +197,6 @@
             if (root) root.style.filter = 'none';
             setTimeout(function () {
               intro.style.display = 'none';
-              localStorage.setItem('binaan-intro-done', '1');
             }, 480);
           }, 820);
           return;
