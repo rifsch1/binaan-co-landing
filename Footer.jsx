@@ -59,8 +59,12 @@
               <div style={{ fontFamily:"'Inter', sans-serif", fontSize:9, fontWeight:600,
                 letterSpacing:'0.12em', textTransform:'uppercase', color:'#8C7A5B', marginBottom:16 }}>Connect</div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {[['LinkedIn','#'],['Instagram','#']].map(([label, href]) => (
-                  <a key={label} href={href} style={{ fontFamily:"'Inter', sans-serif", fontSize:12,
+                {[
+                  ['LinkedIn',  'https://www.linkedin.com/company/binaan-co/'],
+                  ['Instagram', 'https://www.instagram.com/binaan.co'],
+                ].map(([label, href]) => (
+                  <a key={label} href={href} target="_blank" rel="noopener noreferrer"
+                    style={{ fontFamily:"'Inter', sans-serif", fontSize:12,
                     color:'#555', textDecoration:'none', transition:'color 180ms ease' }}
                   onMouseEnter={e => e.currentTarget.style.color='#F4F4F2'}
                   onMouseLeave={e => e.currentTarget.style.color='#555'}
