@@ -182,7 +182,7 @@
       var cur   = document.getElementById('intro-cursor');
       var i = 0, displayed = [];
       var root = document.getElementById('root');
-      if (root) { root.style.filter = 'blur(6px)'; root.style.transition = 'filter 0.55s ease'; }
+      if (root) { root.style.opacity = '0'; }
       var flicker = setInterval(function () {
         intro.style.opacity = (0.9 + Math.random() * 0.1).toFixed(2);
       }, 140);
@@ -194,9 +194,12 @@
             cur.style.animation = 'none';
             cur.style.opacity   = '0';
             intro.classList.add('fading');
-            if (root) root.style.filter = 'none';
             setTimeout(function () {
               intro.style.display = 'none';
+              if (root) {
+                root.style.transition = 'opacity 1.5s ease';
+                root.style.opacity    = '1';
+              }
             }, 480);
           }, 820);
           return;
