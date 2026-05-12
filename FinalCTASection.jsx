@@ -13,6 +13,7 @@ const FinalCTASection = ({ onNavigate }) => {
   const [submitState, setSubmitState] = React.useState('idle'); // idle | loading | success | error
   const [loadingText, setLoadingText] = React.useState('Loading.');
   const [formError, setFormError] = React.useState('');
+  const [successAnim, setSuccessAnim] = React.useState(false);
 
   React.useEffect(() => {
     const h = () => setIsMobile(window.innerWidth < 768);
@@ -79,6 +80,7 @@ const FinalCTASection = ({ onNavigate }) => {
     // Minimum animation time so the dots play meaningfully
     await new Promise(r => setTimeout(r, 2400));
     setSubmitState('success');
+    setTimeout(() => setSuccessAnim(true), 30);
   }
 
   const h2Words = ['Turn', 'your', 'property', 'traffic', 'into', 'booked', 'viewings.'];
@@ -175,6 +177,9 @@ const FinalCTASection = ({ onNavigate }) => {
                 background: 'rgba(10,10,10,0.82)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(168,168,168,0.12)', borderRadius: 14,
                 padding: '52px 32px', textAlign: 'center',
+                opacity: successAnim ? 1 : 0,
+                transform: successAnim ? 'scale(1) translateY(0)' : 'scale(0.95) translateY(12px)',
+                transition: 'opacity 0.65s cubic-bezier(0.4,0,0.2,1), transform 0.65s cubic-bezier(0.34,1.1,0.64,1)',
               }}>
                 <div style={{
                   fontSize: 22, fontWeight: 700, marginBottom: 16,
@@ -222,14 +227,14 @@ const FinalCTASection = ({ onNavigate }) => {
                   <select name="project_type" value={form.project_type} onChange={handleChange}
                     style={{ ...inputStyle, cursor: 'pointer' }}
                     disabled={submitState === 'loading'}>
-                    <option value="">Select project type…</option>
-                    <option>New Residential Home</option>
-                    <option>Commercial Building</option>
-                    <option>Major Renovation</option>
-                    <option>Interior Design</option>
-                    <option>Mixed Development</option>
-                    <option>Government Project</option>
-                    <option>Other</option>
+                    <option value="" style={{ background:'#111', color:'rgba(244,244,242,0.5)' }}>Select project type…</option>
+                    <option style={{ background:'#111', color:'#F4F4F2' }}>New Residential Home</option>
+                    <option style={{ background:'#111', color:'#F4F4F2' }}>Commercial Building</option>
+                    <option style={{ background:'#111', color:'#F4F4F2' }}>Major Renovation</option>
+                    <option style={{ background:'#111', color:'#F4F4F2' }}>Interior Design</option>
+                    <option style={{ background:'#111', color:'#F4F4F2' }}>Mixed Development</option>
+                    <option style={{ background:'#111', color:'#F4F4F2' }}>Government Project</option>
+                    <option style={{ background:'#111', color:'#F4F4F2' }}>Other</option>
                   </select>
                 </div>
 
@@ -239,14 +244,14 @@ const FinalCTASection = ({ onNavigate }) => {
                     <select name="budget" value={form.budget} onChange={handleChange}
                       style={{ ...inputStyle, cursor: 'pointer' }}
                       disabled={submitState === 'loading'}>
-                      <option value="">Select range…</option>
-                      <option>Below MYR 50,000</option>
-                      <option>MYR 50,000 – 150,000</option>
-                      <option>MYR 150,000 – 500,000</option>
-                      <option>MYR 500,000 – 1,000,000</option>
-                      <option>Above MYR 1,000,000</option>
-                      <option>SGD 50,000 – 200,000</option>
-                      <option>Above SGD 200,000</option>
+                      <option value="" style={{ background:'#111', color:'rgba(244,244,242,0.5)' }}>Select range…</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>Below MYR 50,000</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>MYR 50,000 – 150,000</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>MYR 150,000 – 500,000</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>MYR 500,000 – 1,000,000</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>Above MYR 1,000,000</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>SGD 50,000 – 200,000</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>Above SGD 200,000</option>
                     </select>
                   </div>
                   <div style={fieldStyle}>
@@ -254,12 +259,12 @@ const FinalCTASection = ({ onNavigate }) => {
                     <select name="timeline" value={form.timeline} onChange={handleChange}
                       style={{ ...inputStyle, cursor: 'pointer' }}
                       disabled={submitState === 'loading'}>
-                      <option value="">Select…</option>
-                      <option>ASAP / Within 1 month</option>
-                      <option>1–3 months</option>
-                      <option>3–6 months</option>
-                      <option>6–12 months</option>
-                      <option>12+ months / Exploring</option>
+                      <option value="" style={{ background:'#111', color:'rgba(244,244,242,0.5)' }}>Select…</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>ASAP / Within 1 month</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>1–3 months</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>3–6 months</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>6–12 months</option>
+                      <option style={{ background:'#111', color:'#F4F4F2' }}>12+ months / Exploring</option>
                     </select>
                   </div>
                 </div>
