@@ -191,7 +191,7 @@ const Hero = ({ onNavigate }) => {
             transform: headlineVisible ? 'none' : 'translateY(16px)',
             transition:'all 0.7s cubic-bezier(0.4,0,0.2,1) 0.88s',
           }}>
-            <button ref={ctaBtnRef} onClick={() => onNavigate('demo')} style={{
+            <button ref={ctaBtnRef} onClick={() => onNavigate('contact')} style={{
               background:'#1F3D2B', color:'#F4F4F2', border:'none',
               fontFamily:"'Space Grotesk', sans-serif", fontWeight:600,
               fontSize:11, letterSpacing:'0.07em', textTransform:'uppercase',
@@ -201,9 +201,9 @@ const Hero = ({ onNavigate }) => {
             }}
             onMouseEnter={e => { e.currentTarget.style.background='#244A34'; }}
             onMouseLeave={e => { e.currentTarget.style.background='#1F3D2B'; }}
-            >View Demo</button>
+            >Get Started</button>
 
-            <button onClick={() => onNavigate('problem')} style={{
+            <button onClick={() => onNavigate('demo')} style={{
               background:'transparent', color:'#F4F4F2',
               border:'1px solid rgba(244,244,242,0.25)',
               fontFamily:"'Space Grotesk', sans-serif", fontWeight:600,
@@ -213,7 +213,7 @@ const Hero = ({ onNavigate }) => {
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(244,244,242,0.7)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(244,244,242,0.25)'; }}
-            >How It Works</button>
+            >View Demo</button>
           </div>
 
           {!isMobile && (
