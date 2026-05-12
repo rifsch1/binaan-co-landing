@@ -133,10 +133,11 @@
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-  <!-- BinAI Lead Widget — config -->
+  <!-- BinAI config — update these after setup -->
   <script>
-    window.BINAI_API_KEY    = 'AIzaSyAYgG5krahJf61psjiRiGT6rEqWrXk_Ro4';
-    window.BINAI_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzICjSq5OjM6B5-wyjrjSlxGZbfDeFU2G9GBDsnmLL6hnG75xKevjNJIGLJjXoM7jsrZA/exec';
+    window.BINAI_OPENAI_KEY   = 'your-openai-api-key-here';
+    window.BINAI_MAKE_WEBHOOK = 'your-make-com-webhook-url-here';
+    window.BINAI_WHATSAPP     = '+6738000000'; // replace with real Binaan WhatsApp number
   </script>
 
   <!-- Component scripts in dependency order -->
@@ -154,6 +155,7 @@
   <script type="text/babel" src="FAQSection.jsx"></script>
   <script type="text/babel" src="FinalCTASection.jsx"></script>
   <script type="text/babel" src="Footer.jsx"></script>
+  <script type="text/babel" src="ContactForm.jsx"></script>
   <script type="text/babel" src="BinAIChatWidget.jsx"></script>
 </head>
 <body>
@@ -364,6 +366,9 @@
 
           {/* 12 Final CTA */}
           <Reveal><FinalCTASection onNavigate={onNavigate} /></Reveal>
+
+          {/* 13 Contact Form */}
+          <Reveal><BinAIContactForm /></Reveal>
 
           {/* Footer */}
           <Footer onNavigate={onNavigate} />
