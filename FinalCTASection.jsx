@@ -1,6 +1,7 @@
 const FinalCTASection = ({ onNavigate }) => {
   const ctaSectionRef = React.useRef(null);
   const videoRef = React.useRef(null);
+  const loadingIntervalRef = React.useRef(null);
   const [videoLoaded, setVideoLoaded] = React.useState(false);
   const [ctaVisible, setCtaVisible] = React.useState(false);
   const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
@@ -9,8 +10,8 @@ const FinalCTASection = ({ onNavigate }) => {
     name: '', email: '', phone: '',
     project_type: '', budget: '', timeline: '', location: '', notes: '',
   });
-  const [submitting, setSubmitting] = React.useState(false);
-  const [submitted, setSubmitted] = React.useState(false);
+  const [submitState, setSubmitState] = React.useState('idle'); // idle | loading | success | error
+  const [loadingText, setLoadingText] = React.useState('Loading.');
   const [formError, setFormError] = React.useState('');
 
   React.useEffect(() => {
@@ -22,8 +23,7 @@ const FinalCTASection = ({ onNavigate }) => {
   React.useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
-    vid.muted = true;
-    vid.playsInline = true;
+    vid.muted = true; vid.playsInline = true;
     const tryPlay = () => vid.play().catch(() => {});
     vid.addEventListener('canplay', tryPlay);
     vid.addEventListener('loadeddata', () => setVideoLoaded(true));
@@ -32,13 +32,27 @@ const FinalCTASection = ({ onNavigate }) => {
   }, []);
 
   React.useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setCtaVisible(true); observer.disconnect(); } },
+    const obs = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setCtaVisible(true); obs.disconnect(); } },
       { threshold: 0.15 }
     );
-    if (ctaSectionRef.current) observer.observe(ctaSectionRef.current);
-    return () => observer.disconnect();
+    if (ctaSectionRef.current) obs.observe(ctaSectionRef.current);
+    return () => obs.disconnect();
   }, []);
+
+  // Loading dots animation
+  React.useEffect(() => {
+    if (submitState === 'loading') {
+      let dots = 1;
+      loadingIntervalRef.current = setInterval(() => {
+        dots = dots === 3 ? 1 : dots + 1;
+        setLoadingText('Loading' + '.'.repeat(dots));
+      }, 420);
+    } else {
+      clearInterval(loadingIntervalRef.current);
+    }
+    return () => clearInterval(loadingIntervalRef.current);
+  }, [submitState]);
 
   function handleChange(e) {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -53,32 +67,30 @@ const FinalCTASection = ({ onNavigate }) => {
     }
     const webhookUrl = window.BINAI_MAKE_WEBHOOK || '';
     if (!webhookUrl) { setFormError('Service temporarily unavailable. Please try again later.'); return; }
-    setSubmitting(true);
-    try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...form, source: 'Form' }),
-        mode: 'no-cors',
-      });
-      setSubmitted(true);
-    } catch (_) {
-      setFormError('Something went wrong. Please try again or contact us directly.');
-    }
-    setSubmitting(false);
+
+    setSubmitState('loading');
+    // Fire and forget (no-cors returns opaque response)
+    fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ...form, source: 'Form' }),
+      mode: 'no-cors',
+    }).catch(() => {});
+    // Minimum animation time so the dots play meaningfully
+    await new Promise(r => setTimeout(r, 2400));
+    setSubmitState('success');
   }
 
   const h2Words = ['Turn', 'your', 'property', 'traffic', 'into', 'booked', 'viewings.'];
   const GREEN = '#1F3D2B';
-  const whatsappNum = (window.BINAI_WHATSAPP || '+6738000000').replace(/\D/g, '');
-  const whatsappMsg = encodeURIComponent("Hi Binaan, I'd like to discuss my project.");
 
   const inputStyle = {
     width: '100%', background: 'rgba(255,255,255,0.05)',
-    border: '1px solid rgba(168,168,168,0.15)',
-    borderRadius: 6, padding: '10px 14px', color: '#F4F4F2',
-    fontSize: 13, outline: 'none', boxSizing: 'border-box',
+    border: '1px solid rgba(168,168,168,0.15)', borderRadius: 6,
+    padding: '10px 14px', color: '#F4F4F2', fontSize: 13,
+    outline: 'none', boxSizing: 'border-box',
     fontFamily: "'Inter', sans-serif", transition: 'border-color 0.15s',
+    colorScheme: 'dark',
   };
   const labelStyle = {
     display: 'block', color: 'rgba(244,244,242,0.5)', fontSize: 11,
@@ -93,7 +105,6 @@ const FinalCTASection = ({ onNavigate }) => {
       borderTop: '1px solid rgba(168,168,168,0.08)',
       position: 'relative', overflow: 'hidden',
     }}>
-      {/* Ambient video background */}
       <video ref={videoRef} muted loop playsInline autoPlay
         style={{
           position: 'absolute', inset: 0, width: '100%', height: '100%',
@@ -128,7 +139,6 @@ const FinalCTASection = ({ onNavigate }) => {
               <span style={{ fontFamily: "'Inter', sans-serif", fontSize: 10, fontWeight: 600,
                 letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8C7A5B' }}>Next Step</span>
             </div>
-
             <h2 style={{
               fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
               fontSize: isMobile ? 28 : 'clamp(30px, 3.5vw, 52px)',
@@ -144,7 +154,6 @@ const FinalCTASection = ({ onNavigate }) => {
                 }}>{word}</span>
               ))}
             </h2>
-
             <p style={{
               fontFamily: "'Inter', sans-serif", fontSize: isMobile ? 14 : 15,
               color: '#A8A8A8', lineHeight: 1.7, maxWidth: 400,
@@ -161,41 +170,28 @@ const FinalCTASection = ({ onNavigate }) => {
             transform: ctaVisible ? 'none' : 'translateY(24px)',
             transition: 'opacity 0.7s ease 0.45s, transform 0.7s ease 0.45s',
           }}>
-            {submitted ? (
+            {submitState === 'success' ? (
               <div style={{
-                background: 'rgba(10,10,10,0.80)', backdropFilter: 'blur(16px)',
+                background: 'rgba(10,10,10,0.82)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(168,168,168,0.12)', borderRadius: 14,
-                padding: '48px 32px', textAlign: 'center',
+                padding: '52px 32px', textAlign: 'center',
               }}>
-                <div style={{ fontSize: 32, marginBottom: 16 }}>🌱</div>
-                <h3 style={{ color: '#F4F4F2', fontSize: 18, fontWeight: 600,
-                  fontFamily: "'Space Grotesk', sans-serif", marginBottom: 10 }}>
-                  Thank you, {form.name.split(' ')[0]}.
-                </h3>
-                <p style={{ color: 'rgba(244,244,242,0.55)', fontSize: 14, lineHeight: 1.6,
-                  fontFamily: "'Inter', sans-serif", marginBottom: 28 }}>
-                  We've received your enquiry and will be in touch within 24 hours.
+                <div style={{
+                  fontSize: 22, fontWeight: 700, marginBottom: 16,
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  color: '#4ade80',
+                  textShadow: '0 0 24px rgba(74,222,128,0.7), 0 0 48px rgba(74,222,128,0.3)',
+                }}>Enquiry received ✓</div>
+                <p style={{
+                  color: 'rgba(244,244,242,0.65)', fontSize: 14, lineHeight: 1.7,
+                  fontFamily: "'Inter', sans-serif",
+                }}>
+                  Thank you, {form.name.split(' ')[0]}. We'll contact you on WhatsApp within 48 hours.
                 </p>
-                <a
-                  href={`https://wa.me/${whatsappNum}?text=${whatsappMsg}`}
-                  target="_blank" rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex', alignItems: 'center', gap: 8,
-                    background: '#25D366', color: '#fff',
-                    padding: '11px 24px', borderRadius: 8,
-                    fontSize: 13, fontWeight: 600, textDecoration: 'none',
-                    fontFamily: "'Inter', sans-serif",
-                  }}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
-                  </svg>
-                  Chat on WhatsApp
-                </a>
               </div>
             ) : (
               <form onSubmit={handleSubmit} style={{
-                background: 'rgba(10,10,10,0.80)', backdropFilter: 'blur(16px)',
+                background: 'rgba(10,10,10,0.82)', backdropFilter: 'blur(16px)',
                 border: '1px solid rgba(168,168,168,0.12)', borderRadius: 14,
                 padding: isMobile ? '28px 20px' : '32px 28px',
               }}>
@@ -203,25 +199,29 @@ const FinalCTASection = ({ onNavigate }) => {
                   <div style={fieldStyle}>
                     <label style={labelStyle}>Full Name *</label>
                     <input name="name" value={form.name} onChange={handleChange}
-                      placeholder="Ahmad Rashid" style={inputStyle} />
+                      placeholder="Ahmad Rashid" style={inputStyle}
+                      disabled={submitState === 'loading'} />
                   </div>
                   <div style={fieldStyle}>
-                    <label style={labelStyle}>Phone *</label>
+                    <label style={labelStyle}>WhatsApp Number *</label>
                     <input name="phone" value={form.phone} onChange={handleChange}
-                      placeholder="+60 11 1234 5678" style={inputStyle} />
+                      placeholder="+60 11 1234 5678" style={inputStyle}
+                      disabled={submitState === 'loading'} />
                   </div>
                 </div>
 
                 <div style={fieldStyle}>
                   <label style={labelStyle}>Email *</label>
                   <input name="email" type="email" value={form.email} onChange={handleChange}
-                    placeholder="you@example.com" style={inputStyle} />
+                    placeholder="you@example.com" style={inputStyle}
+                    disabled={submitState === 'loading'} />
                 </div>
 
                 <div style={fieldStyle}>
                   <label style={labelStyle}>Project Type *</label>
                   <select name="project_type" value={form.project_type} onChange={handleChange}
-                    style={{ ...inputStyle, cursor: 'pointer' }}>
+                    style={{ ...inputStyle, cursor: 'pointer' }}
+                    disabled={submitState === 'loading'}>
                     <option value="">Select project type…</option>
                     <option>New Residential Home</option>
                     <option>Commercial Building</option>
@@ -237,20 +237,23 @@ const FinalCTASection = ({ onNavigate }) => {
                   <div style={fieldStyle}>
                     <label style={labelStyle}>Budget *</label>
                     <select name="budget" value={form.budget} onChange={handleChange}
-                      style={{ ...inputStyle, cursor: 'pointer' }}>
+                      style={{ ...inputStyle, cursor: 'pointer' }}
+                      disabled={submitState === 'loading'}>
                       <option value="">Select range…</option>
-                      <option>Below BND 50,000</option>
-                      <option>BND 50,000 – 100,000</option>
-                      <option>BND 100,000 – 200,000</option>
-                      <option>BND 200,000 – 500,000</option>
-                      <option>BND 500,000 – 1,000,000</option>
-                      <option>Above BND 1,000,000</option>
+                      <option>Below MYR 50,000</option>
+                      <option>MYR 50,000 – 150,000</option>
+                      <option>MYR 150,000 – 500,000</option>
+                      <option>MYR 500,000 – 1,000,000</option>
+                      <option>Above MYR 1,000,000</option>
+                      <option>SGD 50,000 – 200,000</option>
+                      <option>Above SGD 200,000</option>
                     </select>
                   </div>
                   <div style={fieldStyle}>
                     <label style={labelStyle}>Timeline *</label>
                     <select name="timeline" value={form.timeline} onChange={handleChange}
-                      style={{ ...inputStyle, cursor: 'pointer' }}>
+                      style={{ ...inputStyle, cursor: 'pointer' }}
+                      disabled={submitState === 'loading'}>
                       <option value="">Select…</option>
                       <option>ASAP / Within 1 month</option>
                       <option>1–3 months</option>
@@ -264,14 +267,16 @@ const FinalCTASection = ({ onNavigate }) => {
                 <div style={fieldStyle}>
                   <label style={labelStyle}>Location *</label>
                   <input name="location" value={form.location} onChange={handleChange}
-                    placeholder="e.g. Kuala Lumpur, Malaysia" style={inputStyle} />
+                    placeholder="e.g. Kuala Lumpur, Malaysia"
+                    style={inputStyle} disabled={submitState === 'loading'} />
                 </div>
 
                 <div style={fieldStyle}>
                   <label style={labelStyle}>Notes <span style={{ opacity: 0.5 }}>(optional)</span></label>
                   <textarea name="notes" value={form.notes} onChange={handleChange}
                     rows={2} placeholder="Brief description of your project…"
-                    style={{ ...inputStyle, resize: 'vertical', minHeight: 60, lineHeight: 1.5 }} />
+                    style={{ ...inputStyle, resize: 'vertical', minHeight: 60, lineHeight: 1.5 }}
+                    disabled={submitState === 'loading'} />
                 </div>
 
                 {formError && (
@@ -281,19 +286,29 @@ const FinalCTASection = ({ onNavigate }) => {
                   </div>
                 )}
 
-                <button type="submit" disabled={submitting} style={{
-                  width: '100%', background: GREEN, color: '#F4F4F2',
-                  border: 'none', borderRadius: 6, padding: '13px 0',
-                  fontSize: 12, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer',
-                  opacity: submitting ? 0.7 : 1, transition: 'opacity 0.2s, background 0.15s',
-                  fontFamily: "'Space Grotesk', sans-serif",
-                  letterSpacing: '0.06em', textTransform: 'uppercase',
-                }}
-                onMouseEnter={e => { if (!submitting) e.currentTarget.style.background = '#244A34'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = GREEN; }}
-                >
-                  {submitting ? 'Submitting…' : 'Submit Enquiry'}
-                </button>
+                {submitState === 'loading' ? (
+                  <div style={{
+                    textAlign: 'center', padding: '13px 0',
+                    fontFamily: "'Inter', sans-serif", fontSize: 14,
+                    color: 'rgba(244,244,242,0.6)', letterSpacing: '0.04em',
+                  }}>
+                    {loadingText}
+                  </div>
+                ) : (
+                  <button type="submit" style={{
+                    width: '100%', background: GREEN, color: '#F4F4F2',
+                    border: 'none', borderRadius: 6, padding: '13px 0',
+                    fontSize: 12, fontWeight: 600, cursor: 'pointer',
+                    transition: 'background 0.15s',
+                    fontFamily: "'Space Grotesk', sans-serif",
+                    letterSpacing: '0.06em', textTransform: 'uppercase',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#244A34'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = GREEN; }}
+                  >
+                    Submit Enquiry
+                  </button>
+                )}
 
                 <p style={{ textAlign: 'center', color: 'rgba(244,244,242,0.22)', fontSize: 11,
                   marginTop: 12, fontFamily: "'Inter', sans-serif" }}>
