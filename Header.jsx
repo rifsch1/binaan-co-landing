@@ -48,7 +48,7 @@ const Header = ({ onNavigate }) => {
 
         {isMobile ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button onClick={() => window.open('https://wa.me/601172250309?text=Hey%20I%20just%20saw%20your%20property%20system%20demo.%20Curious%20how%20this%20would%20work%20for%20one%20of%20my%20listings.', '_blank', 'noopener,noreferrer')} style={{
+            <button onClick={() => handleNav('contact')} style={{
               background: '#1F3D2B', color: '#F4F4F2', border: 'none',
               fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600,
               fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase',
@@ -86,7 +86,7 @@ const Header = ({ onNavigate }) => {
             onMouseEnter={e => { e.currentTarget.style.borderColor='#F4F4F2'; e.currentTarget.style.transform='translateY(-1px)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(168,168,168,0.5)'; e.currentTarget.style.transform='none'; }}
             >View Demo</button>
-            <button onClick={() => window.open('https://wa.me/601172250309?text=Hey%20I%20just%20saw%20your%20property%20system%20demo.%20Curious%20how%20this%20would%20work%20for%20one%20of%20my%20listings.', '_blank', 'noopener,noreferrer')} style={{
+            <button onClick={() => onNavigate('contact')} style={{
               background: '#1F3D2B', color: '#F4F4F2', border: 'none',
               fontFamily: "'Space Grotesk', sans-serif", fontWeight: 600,
               fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase',
