@@ -191,7 +191,7 @@ const FinalCTASection = ({ onNavigate }) => {
                   color: 'rgba(244,244,242,0.65)', fontSize: 14, lineHeight: 1.7,
                   fontFamily: "'Inter', sans-serif",
                 }}>
-                  Thank you, {form.name.split(' ')[0]}. We'll contact you on WhatsApp within 48 hours.
+                  Thank you, {form.name.split(' ')[0]}. We'll contact you on WhatsApp within 24 hours.
                 </p>
               </div>
             ) : (
