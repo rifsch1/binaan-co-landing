@@ -146,7 +146,7 @@ const Hero = ({ onNavigate }) => {
             display:'flex', alignItems:'center', gap:10, marginBottom: isMobile ? 20 : 28,
             opacity: headlineVisible ? 1 : 0,
             transform: headlineVisible ? 'none' : 'translateY(12px)',
-            transition:'all 0.7s cubic-bezier(0.4,0,0.2,1) 0.1s',
+            transition:'opacity 0.5s cubic-bezier(0.23,1,0.32,1) 0.1s, transform 0.5s cubic-bezier(0.23,1,0.32,1) 0.1s',
           }}>
             <span style={{ display:'inline-block', width:24, height:1, background:'#8C7A5B' }} />
             <span style={{ fontFamily:"'Inter', sans-serif", fontSize:10, fontWeight:600,
@@ -167,7 +167,7 @@ const Hero = ({ onNavigate }) => {
                 display:'inline-block',
                 opacity: headlineVisible ? 1 : 0,
                 transform: headlineVisible ? 'none' : 'translateY(20px)',
-                transition:`opacity 0.6s cubic-bezier(0.4,0,0.2,1) ${0.2+i*0.07}s, transform 0.6s cubic-bezier(0.4,0,0.2,1) ${0.2+i*0.07}s`,
+                transition:`opacity 0.45s cubic-bezier(0.23,1,0.32,1) ${0.18+i*0.05}s, transform 0.45s cubic-bezier(0.23,1,0.32,1) ${0.18+i*0.05}s`,
               }}>{word}</span>
             ))}
           </h1>
@@ -179,7 +179,7 @@ const Hero = ({ onNavigate }) => {
             maxWidth: isMobile ? '100%' : 460, marginBottom: isMobile ? 24 : 28,
             opacity: headlineVisible ? 1 : 0,
             transform: headlineVisible ? 'none' : 'translateY(16px)',
-            transition:'all 0.7s cubic-bezier(0.4,0,0.2,1) 0.75s',
+            transition:'opacity 0.5s cubic-bezier(0.23,1,0.32,1) 0.6s, transform 0.5s cubic-bezier(0.23,1,0.32,1) 0.6s',
           }}>
             We build the website and the system behind it. Designed to move property traffic into actual viewing appointments.
           </p>
@@ -189,7 +189,7 @@ const Hero = ({ onNavigate }) => {
             marginBottom:8,
             opacity: headlineVisible ? 1 : 0,
             transform: headlineVisible ? 'none' : 'translateY(16px)',
-            transition:'all 0.7s cubic-bezier(0.4,0,0.2,1) 0.88s',
+            transition:'opacity 0.45s cubic-bezier(0.23,1,0.32,1) 0.72s, transform 0.45s cubic-bezier(0.23,1,0.32,1) 0.72s',
           }}>
             <button ref={ctaBtnRef} onClick={() => onNavigate('contact')} style={{
               background:'#1F3D2B', color:'#F4F4F2', border:'none',
@@ -197,10 +197,12 @@ const Hero = ({ onNavigate }) => {
               fontSize:11, letterSpacing:'0.07em', textTransform:'uppercase',
               padding: isMobile ? '13px 24px' : '14px 32px', borderRadius:3, cursor:'pointer',
               boxShadow:'0 0 20px rgba(31,61,43,0.5)',
-              transition:'all 180ms cubic-bezier(0.4,0,0.2,1)',
+              transition:'background 150ms cubic-bezier(0.23,1,0.32,1), box-shadow 150ms cubic-bezier(0.23,1,0.32,1), transform 120ms cubic-bezier(0.23,1,0.32,1)',
             }}
             onMouseEnter={e => { e.currentTarget.style.background='#244A34'; }}
             onMouseLeave={e => { e.currentTarget.style.background='#1F3D2B'; }}
+            onMouseDown={e => { e.currentTarget.style.transform='scale(0.97)'; }}
+            onMouseUp={e => { e.currentTarget.style.transform='scale(1)'; }}
             >Get Started</button>
 
             <button onClick={() => onNavigate('demo')} style={{
@@ -209,10 +211,12 @@ const Hero = ({ onNavigate }) => {
               fontFamily:"'Space Grotesk', sans-serif", fontWeight:600,
               fontSize:11, letterSpacing:'0.07em', textTransform:'uppercase',
               padding: isMobile ? '13px 24px' : '14px 32px', borderRadius:3, cursor:'pointer',
-              transition:'all 180ms cubic-bezier(0.4,0,0.2,1)',
+              transition:'border-color 150ms cubic-bezier(0.23,1,0.32,1), transform 120ms cubic-bezier(0.23,1,0.32,1)',
             }}
             onMouseEnter={e => { e.currentTarget.style.borderColor='rgba(244,244,242,0.7)'; }}
             onMouseLeave={e => { e.currentTarget.style.borderColor='rgba(244,244,242,0.25)'; }}
+            onMouseDown={e => { e.currentTarget.style.transform='scale(0.97)'; }}
+            onMouseUp={e => { e.currentTarget.style.transform='scale(1)'; }}
             >View Demo</button>
           </div>
 
@@ -321,7 +325,7 @@ const AutomationCard = ({ isMobile, visible }) => {
   return (
     <div style={{
       opacity: visible ? 1 : 0,
-      transition: 'opacity 0.9s ease 1s',
+      transition: 'opacity 0.55s cubic-bezier(0.23,1,0.32,1) 0.75s',
       animation: 'heroFloat 5.5s ease-in-out infinite',
       flexShrink: 0,
       width: isMobile ? '100%' : 290,
