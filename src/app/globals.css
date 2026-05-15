@@ -1,26 +1,139 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
+/* ── Brand tokens ────────────────────────────────────────── */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Colors */
+  --color-graphite:  #1a1a1a;
+  --color-offwhite:  #f4f4f2;
+  --color-forest:    #1f3d2b;
+  --color-cement:    #a8a8a8;
+  --color-gold:      #8c7a5b;
+  --color-black:     #0b0b0b;
+
+  /* Fonts */
+  --font-display: var(--font-space-grotesk);
+  --font-serif:   var(--font-instrument-serif);
+  --font-mono:    var(--font-ibm-plex-mono);
+
+  /* Easing */
+  --ease-out:     cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-inout:   cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ── Base ────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  background: #1a1a1a;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #1a1a1a;
+  color: #f4f4f2;
+  font-family: var(--font-display), 'Space Grotesk', sans-serif;
+}
+
+::selection {
+  background: rgba(31, 61, 43, 0.35);
+  color: #f4f4f2;
+}
+
+/* ── Lenis smooth scroll ─────────────────────────────────── */
+html.lenis { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+.lenis.lenis-scrolling iframe { pointer-events: none; }
+
+/* ── Scrollbar ───────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: #111; }
+::-webkit-scrollbar-thumb { background: #2c2c2c; border-radius: 2px; }
+
+/* ── Utility: grain overlay ──────────────────────────────── */
+.grain::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0.038;
+  background-image: url('/assets/noise-texture.png');
+  background-size: 180px 180px;
+}
+
+/* ── Utility: grid background ────────────────────────────── */
+.grid-bg {
+  background-image:
+    linear-gradient(rgba(244,244,242,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(244,244,242,0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────── */
+.btn-border {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 20px;
+  border: 1px solid rgba(244,244,242,0.22);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: #f4f4f2;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: border-color 150ms var(--ease-out), background 150ms var(--ease-out), transform 120ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-border:hover { border-color: rgba(244,244,242,0.5); background: rgba(244,244,242,0.04); }
+}
+.btn-border:active { transform: scale(0.97); }
+
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  color: rgba(244,244,242,0.5);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: color 150ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-ghost:hover { color: rgba(244,244,242,0.9); }
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 28px;
+  background: #1f3d2b;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: #f4f4f2;
+  text-decoration: none;
+  text-transform: uppercase;
+  border-radius: 3px;
+  transition: background 150ms var(--ease-out), transform 120ms var(--ease-out), box-shadow 150ms var(--ease-out);
+  box-shadow: 0 0 20px rgba(31,61,43,0.4);
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover { background: #244a34; box-shadow: 0 0 32px rgba(31,61,43,0.6); }
+}
+.btn-primary:active { transform: scale(0.97); }
+
+/* ── Reduce motion ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
