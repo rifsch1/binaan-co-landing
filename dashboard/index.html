@@ -294,7 +294,7 @@
     const u = document.getElementById('username').value.trim().toLowerCase();
     const p = document.getElementById('password').value;
     const hash = await sha256(p);
-    if (u === AUTH.username && hash === AUTH.passwordHash) {
+    if (USERS[u] && hash === USERS[u]) {
       sessionStorage.setItem('binai_auth', '1');
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('dashboard').style.display = 'block';
@@ -317,7 +317,7 @@
     document.getElementById('dashboard').style.display = 'block';
   }
 
-  // ── Data ──────────────────────────────────────────────────────────────────
+  // ── Data ────────────────────────────────────��─────────────────────────────
   let allLeads   = [];
   let currentFilter = 'All';
   let sortCol    = 'Timestamp';
@@ -364,7 +364,7 @@
     renderTable(filtered());
   }
 
-  // ── Stats ──────────────────────────────────────────────────────────────────
+  // ── Stats ───────────��──────────────────────────────────────────────────────
   function renderStats(leads) {
     const hot  = leads.filter(l => l['Classification'] === 'Hot').length;
     const warm = leads.filter(l => l['Classification'] === 'Warm').length;
